@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Регистрация — API Library</title>
+  
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <div id="navbarContainer"></div>
+
+  <main class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="nav-brand-logo auth-logo">&lt;/&gt;</div>
+        <h1 class="auth-title">Создать аккаунт</h1>
+        <p class="text-secondary text-sm">Присоединяйтесь к каталогу API Library</p>
+      </div>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label class="form-label" for="regName">Имя или никнейм</label>
+          <input 
+            type="text" 
+            id="regName" 
+            class="form-control" 
+            placeholder="Alex Dev" 
+            required 
+            autocomplete="name"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regEmail">Электронная почта</label>
+          <input 
+            type="email" 
+            id="regEmail" 
+            class="form-control" 
+            placeholder="developer@example.com" 
+            required 
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regPassword">Пароль</label>
+          <input 
+            type="password" 
+            id="regPassword" 
+            class="form-control" 
+            placeholder="Минимум 6 символов" 
+            required 
+            minlength="6"
+            autocomplete="new-password"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="regPasswordConfirm">Подтверждение пароля</label>
+          <input 
+            type="password" 
+            id="regPasswordConfirm" 
+            class="form-control" 
+            placeholder="Повторите пароль" 
+            required 
+            minlength="6"
+            autocomplete="new-password"
+          >
+        </div>
+
+        <button type="submit" id="btnRegisterSubmit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+          Зарегистрироваться
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p class="text-secondary">
+          Уже есть аккаунт? <a href="login.html" class="text-accent text-bold">Войти</a>
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content flex-center">
+      <div class="text-muted text-sm">
+        API Library © 2026 · Каталог для разработчиков
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { initTheme } from "./js/theme.js";
+    import { renderNavbar } from "./js/components/navbar.js";
+    import { initModals } from "./js/components/modal.js";
+    import { toast } from "./js/components/toast.js";
+    import { registerUser, onAuthChange } from "./js/auth.js";
+
+    initTheme();
+    renderNavbar();
+    initModals();
+
+    onAuthChange((user) => {
+      if (user) {
+        window.location.href = "index.html";
+      }
+    });
+
+    const regForm = document.getElementById("registerForm");
+    const regBtn = document.getElementById("btnRegisterSubmit");
+
+    regForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = document.getElementById("regName").value.trim();
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value;
+      const confirmPass = document.getElementById("regPasswordConfirm").value;
+
+      if (password !== confirmPass) {
+        toast.error("Введенные пароли не совпадают!");
+        return;
+      }
+
+      if (password.length < 6) {
+        toast.warning("Пароль должен содержать не менее 6 символов");
+        return;
+      }
+
+      regBtn.disabled = true;
+      regBtn.textContent = "Регистрация...";
+
+      try {
+        await registerUser(email, password, name);
+        toast.success("Регистрация успешна! Добро пожаловать.");
+        window.location.href = "index.html";
+      } catch (err) {
+        let msg = "Ошибка регистрации: " + err.message;
+        if (err.code === "auth/email-already-in-use") {
+          msg = "Пользователь с таким email уже зарегистрирован";
+        } else if (err.code === "auth/weak-password") {
+          msg = "Слишком простой пароль";
+        }
+        toast.error(msg);
+      } finally {
+        regBtn.disabled = false;
+        regBtn.textContent = "Зарегистрироваться";
+      }
+    });
+  </script>
+</body>
+</html>

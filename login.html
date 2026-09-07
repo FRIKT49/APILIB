@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Вход в систему — API Library</title>
+  
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <div id="navbarContainer"></div>
+
+  <main class="auth-wrapper">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="nav-brand-logo auth-logo">&lt;/&gt;</div>
+        <h1 class="auth-title">Вход в API Library</h1>
+        <p class="text-secondary text-sm">Войдите, чтобы сохранять API в избранное и оставлять отзывы</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">Электронная почта</label>
+          <input 
+            type="email" 
+            id="loginEmail" 
+            class="form-control" 
+            placeholder="developer@example.com" 
+            required 
+            autocomplete="email"
+          >
+        </div>
+
+        <div class="form-group">
+          <div class="flex-between">
+            <label class="form-label" for="loginPassword">Пароль</label>
+            <a href="#" id="btnForgotPassword" class="text-accent text-xs" style="text-decoration: underline;">
+              Забыли пароль?
+            </a>
+          </div>
+          <input 
+            type="password" 
+            id="loginPassword" 
+            class="form-control" 
+            placeholder="••••••••" 
+            required 
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" id="btnLoginSubmit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+          Войти
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <p class="text-secondary">
+          Нет аккаунта? <a href="register.html" class="text-accent text-bold">Зарегистрироваться</a>
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content flex-center">
+      <div class="text-muted text-sm">
+        API Library © 2026 · Каталог для разработчиков
+      </div>
+    </div>
+  </footer>
+
+  <script type="module">
+    import { initTheme } from "./js/theme.js";
+    import { renderNavbar } from "./js/components/navbar.js";
+    import { initModals, showConfirmDialog } from "./js/components/modal.js";
+    import { toast } from "./js/components/toast.js";
+    import { loginUser, resetPassword, onAuthChange } from "./js/auth.js";
+
+    initTheme();
+    renderNavbar();
+    initModals();
+
+    // If user is already logged in, redirect to profile or catalog
+    onAuthChange((user) => {
+      if (user) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get("redirect") || "index.html";
+        window.location.href = redirect;
+      }
+    });
+
+    const loginForm = document.getElementById("loginForm");
+    const loginBtn = document.getElementById("btnLoginSubmit");
+    const forgotBtn = document.getElementById("btnForgotPassword");
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+
+      loginBtn.disabled = true;
+      loginBtn.textContent = "Вход...";
+
+      try {
+        await loginUser(email, password);
+        toast.success("Вы успешно вошли в систему!");
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get("redirect") || "index.html";
+        window.location.href = redirect;
+      } catch (err) {
+        let msg = "Ошибка авторизации: " + err.message;
+        if (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password" || err.code === "auth/user-not-found") {
+          msg = "Неверный email или пароль";
+        } else if (err.code === "auth/invalid-email") {
+          msg = "Некорректный формат email";
+        }
+        toast.error(msg);
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Войти";
+      }
+    });
+
+    // Forgot password flow
+    forgotBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value.trim();
+      if (!email) {
+        toast.warning("Введите ваш email в поле выше и нажмите 'Забыли пароль?'");
+        document.getElementById("loginEmail").focus();
+        return;
+      }
+
+      try {
+        await resetPassword(email);
+        toast.info(`Инструкции по сбросу пароля отправлены на ${email}`);
+      } catch (err) {
+        toast.error("Ошибка сброса пароля: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>

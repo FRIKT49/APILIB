@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Library — Каталог API для разработчиков</title>
+  <meta name="description" content="Каталог сторонних API в формате онлайн-библиотеки. Поиск, сравнение и документация лучших инструментов для разработчиков.">
+  
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/pages.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+  <!-- Header / Navbar Container -->
+  <div id="navbarContainer"></div>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-badge">
+          <span>⚡</span> Каталог для разработчиков
+        </div>
+        <h1 class="hero-title">Найди API <span>для своего проекта</span></h1>
+        <p class="hero-subtitle">
+          Каталог API для разработчиков — ищи, сравнивай и находи нужные инструменты.
+        </p>
+
+        <!-- Big Search Bar -->
+        <div class="search-bar-wrapper">
+          <div class="search-bar">
+            <span class="search-bar-icon">🔍</span>
+            <input 
+              type="text" 
+              id="mainSearchInput" 
+              class="search-bar-input" 
+              placeholder="Поиск API: weather, maps, payments..."
+              autocomplete="off"
+            >
+            <button id="searchClearBtn" class="search-bar-clear" title="Очистить поиск">&times;</button>
+          </div>
+        </div>
+
+        <!-- Categories Filter Chips -->
+        <div id="categories" class="category-chips flex-center" style="margin-top: 20px;">
+          <!-- Rendered dynamically by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Catalog Section -->
+    <section class="section" style="padding-top: 0;">
+      <div class="container">
+        <!-- Catalog Controls & Filters -->
+        <div class="catalog-controls">
+          <div class="filters-group">
+            <!-- Auth Filter -->
+            <div class="filter-select-wrapper">
+              <label for="authFilter">Авторизация:</label>
+              <select id="authFilter" class="filter-select">
+                <option value="All">Все</option>
+                <option value="None">None</option>
+                <option value="API Key">API Key</option>
+                <option value="OAuth 2.0">OAuth 2.0</option>
+                <option value="Bearer Token">Bearer Token</option>
+                <option value="Basic Auth">Basic Auth</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <!-- Pricing Filter -->
+            <div class="filter-select-wrapper">
+              <label for="pricingFilter">Цена:</label>
+              <select id="pricingFilter" class="filter-select">
+                <option value="All">Все</option>
+                <option value="Free">Бесплатный тариф</option>
+                <option value="Freemium">Freemium</option>
+                <option value="Paid">Платные</option>
+              </select>
+            </div>
+
+            <!-- Format Filter -->
+            <div class="filter-select-wrapper">
+              <label for="formatFilter">Формат:</label>
+              <select id="formatFilter" class="filter-select">
+                <option value="All">Все</option>
+                <option value="JSON">JSON</option>
+                <option value="GraphQL">GraphQL</option>
+                <option value="XML">XML</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <!-- Sort By -->
+            <div class="filter-select-wrapper">
+              <label for="sortFilter">Сортировка:</label>
+              <select id="sortFilter" class="filter-select">
+                <option value="rating">По рейтингу ★</option>
+                <option value="popularity">По популярности 👁</option>
+                <option value="createdAt">По дате добавления 🕒</option>
+                <option value="name">По названию (А-Я)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="catalog-stats">
+            <span id="catalogCount">Загрузка каталога...</span>
+          </div>
+        </div>
+
+        <!-- API Cards Grid -->
+        <div id="apiGrid" class="api-grid">
+          <!-- Skeletons will be injected here initially -->
+        </div>
+
+        <!-- Pagination (Load More) -->
+        <div class="pagination-wrapper">
+          <button id="btnLoadMore" class="btn btn-secondary btn-lg" style="display: none;">
+            Показать ещё
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="flex" style="align-items: center; gap: 8px;">
+        <div class="nav-brand-logo" style="width: 26px; height: 26px; font-size: 0.8rem;">&lt;/&gt;</div>
+        <strong>API Library</strong>
+        <span class="text-muted text-sm">— Каталог сторонних API для разработчиков</span>
+      </div>
+      <div class="text-muted text-sm">
+        Чистый стек: HTML5 · CSS3 · Vanilla JS (ES6+) · Firebase
+      </div>
+    </div>
+  </footer>
+
+  <!-- Script Initialization -->
+  <script type="module">
+    import { initTheme } from "./js/theme.js";
+    import { renderNavbar } from "./js/components/navbar.js";
+    import { initModals } from "./js/components/modal.js";
+    import { toast } from "./js/components/toast.js";
+    import { FilterManager, CATEGORIES } from "./js/filters.js";
+    import { subscribeToApis, fetchNextPageApis } from "./js/api.js";
+    import { searchApis, debounce } from "./js/search.js";
+    import { createApiCardElement, createSkeletonCardElement } from "./js/components/apiCard.js";
+    import { toggleFavorite } from "./js/profile.js";
+    import { onAuthChange } from "./js/auth.js";
+    import { db } from "./js/firebase.js";
+
+    // Setup Theme, Navbar, Modals
+    initTheme();
+    renderNavbar("catalog");
+    initModals();
+
+    const apiGrid = document.getElementById("apiGrid");
+    const catalogCount = document.getElementById("catalogCount");
+    const btnLoadMore = document.getElementById("btnLoadMore");
+    const searchInput = document.getElementById("mainSearchInput");
+    const searchClearBtn = document.getElementById("searchClearBtn");
+    const categoriesContainer = document.getElementById("categories");
+
+    let activeUser = null;
+    let currentLastDoc = null;
+    let unsubscribeRealtime = null;
+    let isSearchMode = false;
+    let displayedApis = [];
+
+    // Track user state for favorites
+    onAuthChange((user) => {
+      activeUser = user;
+    });
+
+    // Render category chips
+    function renderCategoryChips(activeCat) {
+      categoriesContainer.innerHTML = CATEGORIES.map((cat) => `
+        <button class="category-chip ${cat === activeCat ? "active" : ""}" data-category="${cat}">
+          ${cat === "All" ? "Все категории" : cat}
+        </button>
+      `).join("");
+
+      categoriesContainer.querySelectorAll(".category-chip").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const selected = btn.dataset.category;
+          filterManager.setCategory(selected);
+          renderCategoryChips(selected);
+        });
+      });
+    }
+
+    // Show loading skeletons
+    function showSkeletons(count = 6) {
+      apiGrid.innerHTML = "";
+      for (let i = 0; i < count; i++) {
+        apiGrid.appendChild(createSkeletonCardElement());
+      }
+    }
+
+    // Bind favorite clicks
+    function attachCardEvents(container) {
+      container.querySelectorAll("[data-favorite-btn]").forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const apiId = btn.dataset.favoriteBtn;
+          if (!activeUser) {
+            toast.warning("Пожалуйста, войдите, чтобы сохранить API в избранное");
+            return;
+          }
+          try {
+            const isFav = await toggleFavorite(apiId);
+            btn.classList.toggle("active", isFav);
+            btn.textContent = isFav ? "★" : "☆";
+            btn.title = isFav ? "Удалить из избранного" : "Добавить в избранное";
+            toast.success(isFav ? "Добавлено в избранное" : "Удалено из избранного");
+          } catch (err) {
+            toast.error("Ошибка: " + err.message);
+          }
+        });
+      });
+    }
+
+    // Render APIs list to grid
+    function renderApis(apis, append = false) {
+      if (!append) {
+        apiGrid.innerHTML = "";
+        displayedApis = apis;
+      } else {
+        displayedApis = displayedApis.concat(apis);
+      }
+
+      if (displayedApis.length === 0) {
+        apiGrid.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <div class="empty-state-icon">🔍</div>
+            <h3 class="empty-state-title">Ничего не найдено</h3>
+            <p class="empty-state-text">Попробуйте изменить поисковый запрос или сбросить фильтры каталога.</p>
+            <button class="btn btn-secondary btn-sm" id="btnResetFilters">Сбросить все фильтры</button>
+          </div>
+        `;
+        const resetBtn = document.getElementById("btnResetFilters");
+        if (resetBtn) {
+          resetBtn.addEventListener("click", () => {
+            filterManager.reset();
+            syncFilterInputs();
+            renderCategoryChips("All");
+          });
+        }
+        catalogCount.textContent = "Найдено: 0 API";
+        btnLoadMore.style.display = "none";
+        return;
+      }
+
+      catalogCount.textContent = `Отображается: ${displayedApis.length} API`;
+
+      if (!append) {
+        apis.forEach((api) => {
+          const card = createApiCardElement(api, false);
+          apiGrid.appendChild(card);
+        });
+      } else {
+        apis.forEach((api) => {
+          const card = createApiCardElement(api, false);
+          apiGrid.appendChild(card);
+        });
+      }
+
+      attachCardEvents(apiGrid);
+    }
+
+    // Apply Real-time Subscription to Firestore Catalog
+    function applyQuery() {
+      const state = filterManager.getState();
+
+      if (state.searchQuery && state.searchQuery.trim().length >= 2) {
+        // Search Mode
+        isSearchMode = true;
+        btnLoadMore.style.display = "none";
+        if (unsubscribeRealtime) unsubscribeRealtime();
+        showSkeletons(4);
+
+        searchApis(state.searchQuery).then((results) => {
+          // Client-side filter matching other selected controls if any
+          let filtered = results;
+          if (state.category !== "All") filtered = filtered.filter(a => a.category === state.category);
+          if (state.authentication !== "All") filtered = filtered.filter(a => a.authentication === state.authentication);
+          if (state.format !== "All") filtered = filtered.filter(a => a.format === state.format);
+          if (state.pricing === "Free") filtered = filtered.filter(a => a.freeTier === true);
+          if (state.pricing === "Paid") filtered = filtered.filter(a => a.freeTier === false);
+          renderApis(filtered);
+        });
+        return;
+      }
+
+      // Realtime OnSnapshot Mode
+      isSearchMode = false;
+      showSkeletons(6);
+
+      if (unsubscribeRealtime) unsubscribeRealtime();
+
+      unsubscribeRealtime = subscribeToApis(
+        {
+          category: state.category,
+          authentication: state.authentication,
+          pricing: state.pricing,
+          format: state.format,
+          sortBy: state.sortBy,
+          sortOrder: state.sortBy === "name" ? "asc" : "desc",
+          pageSize: 12
+        },
+        (apis, lastDoc, error) => {
+          if (error) {
+            console.warn("Realtime subscription notice:", error.message);
+            catalogCount.textContent = "Готов к работе с Firebase";
+            renderApis([]);
+            return;
+          }
+
+          currentLastDoc = lastDoc;
+          renderApis(apis);
+
+          // Show Load More if we received a full page of 12 items
+          if (apis.length >= 12 && currentLastDoc) {
+            btnLoadMore.style.display = "inline-flex";
+          } else {
+            btnLoadMore.style.display = "none";
+          }
+        }
+      );
+    }
+
+    // Pagination: Load More button
+    btnLoadMore.addEventListener("click", async () => {
+      if (!currentLastDoc || isSearchMode) return;
+
+      btnLoadMore.disabled = true;
+      btnLoadMore.textContent = "Загрузка...";
+
+      const state = filterManager.getState();
+      try {
+        const { apis, lastDoc } = await fetchNextPageApis(
+          {
+            category: state.category,
+            authentication: state.authentication,
+            pricing: state.pricing,
+            format: state.format,
+            sortBy: state.sortBy,
+            sortOrder: state.sortBy === "name" ? "asc" : "desc",
+            pageSize: 12
+          },
+          currentLastDoc
+        );
+
+        currentLastDoc = lastDoc;
+        renderApis(apis, true);
+
+        if (!lastDoc || apis.length < 12) {
+          btnLoadMore.style.display = "none";
+        }
+      } catch (err) {
+        toast.error("Ошибка при подгрузке данных: " + err.message);
+      } finally {
+        btnLoadMore.disabled = false;
+        btnLoadMore.textContent = "Показать ещё";
+      }
+    });
+
+    // Initialize Filter Manager
+    const filterManager = new FilterManager(() => {
+      applyQuery();
+    });
+
+    function syncFilterInputs() {
+      const state = filterManager.getState();
+      document.getElementById("authFilter").value = state.authentication;
+      document.getElementById("pricingFilter").value = state.pricing;
+      document.getElementById("formatFilter").value = state.format;
+      document.getElementById("sortFilter").value = state.sortBy;
+      searchInput.value = state.searchQuery || "";
+      searchClearBtn.classList.toggle("visible", Boolean(state.searchQuery));
+    }
+
+    // Attach Filter Select Events
+    document.getElementById("authFilter").addEventListener("change", (e) => filterManager.setFilter("authentication", e.target.value));
+    document.getElementById("pricingFilter").addEventListener("change", (e) => filterManager.setFilter("pricing", e.target.value));
+    document.getElementById("formatFilter").addEventListener("change", (e) => filterManager.setFilter("format", e.target.value));
+    document.getElementById("sortFilter").addEventListener("change", (e) => filterManager.setFilter("sortBy", e.target.value));
+
+    // Debounced Search Input
+    const debouncedSearch = debounce((query) => {
+      filterManager.setSearchQuery(query);
+    }, 350);
+
+    searchInput.addEventListener("input", (e) => {
+      const val = e.target.value;
+      searchClearBtn.classList.toggle("visible", Boolean(val));
+      debouncedSearch(val);
+    });
+
+    searchClearBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      searchClearBtn.classList.remove("visible");
+      filterManager.setSearchQuery("");
+      searchInput.focus();
+    });
+
+    // Initial render
+    renderCategoryChips(filterManager.getState().category);
+    syncFilterInputs();
+    applyQuery();
+  </script>
+</body>
+</html>

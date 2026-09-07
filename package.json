@@ -1,0 +1,18 @@
+{
+  "name": "api-library",
+  "version": "1.0.0",
+  "description": "API Library - Developer API catalog with Express backend and Firestore integration",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["api", "catalog", "firebase", "firestore"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
