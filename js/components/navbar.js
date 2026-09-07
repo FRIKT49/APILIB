@@ -11,7 +11,7 @@ export function renderNavbar(activePage = "") {
   const navContainer = document.getElementById("navbarContainer");
   if (!navContainer) return;
 
-  const currentTheme = localStorage.getItem("api_library_theme") || "light";
+  const currentTheme = localStorage.getItem("api_library_theme") || "dark";
   const themeIcon = currentTheme === "dark" ? "☀" : "☾";
 
   navContainer.innerHTML = `
@@ -26,7 +26,7 @@ export function renderNavbar(activePage = "") {
       <div class="container navbar-inner">
         <!-- Logo -->
         <a href="index.html" class="nav-brand">
-          <div class="nav-brand-logo">&lt;/&gt;</div>
+          <span class="brand-triangle" style="color: #3b82f6; font-size: 1.15rem; transform: translateY(-1px);">▲</span>
           <span>API Library</span>
         </a>
 
@@ -58,7 +58,7 @@ export function renderNavbar(activePage = "") {
 
           <!-- Auth Dynamic Area -->
           <div id="navAuthArea">
-            <a href="login.html" class="btn btn-primary btn-sm">Войти</a>
+            <a href="login.html" class="btn-pill btn-pill-primary" style="padding: 7px 18px; font-size: 0.875rem;">Войти</a>
           </div>
 
           <!-- Mobile Hamburger -->
@@ -74,7 +74,7 @@ export function renderNavbar(activePage = "") {
       <div class="mobile-nav-drawer">
         <div class="mobile-nav-header">
           <div class="nav-brand">
-            <div class="nav-brand-logo">&lt;/&gt;</div>
+            <span class="brand-triangle" style="color: #3b82f6; font-size: 1.15rem;">▲</span>
             <span>API Library</span>
           </div>
           <button class="modal-close" id="closeMobileNav">&times;</button>
@@ -209,13 +209,13 @@ function updateNavAuthState(user, profile) {
   } else {
     // Unauthenticated
     desktopAuth.innerHTML = `
-      <a href="login.html" class="btn btn-secondary btn-sm" style="margin-right: 6px;">Войти</a>
-      <a href="register.html" class="btn btn-primary btn-sm">Регистрация</a>
+      <a href="login.html" class="btn-pill btn-pill-secondary" style="padding: 7px 16px; font-size: 0.85rem; margin-right: 6px;">Войти</a>
+      <a href="register.html" class="btn-pill btn-pill-primary" style="padding: 7px 18px; font-size: 0.85rem;">Регистрация</a>
     `;
     if (mobileAuth) {
       mobileAuth.innerHTML = `
-        <a href="login.html" class="btn btn-secondary" style="width: 100%;">Войти</a>
-        <a href="register.html" class="btn btn-primary" style="width: 100%;">Регистрация</a>
+        <a href="login.html" class="btn-pill btn-pill-secondary" style="width: 100%; justify-content: center; margin-bottom: 8px;">Войти</a>
+        <a href="register.html" class="btn-pill btn-pill-primary" style="width: 100%; justify-content: center;">Регистрация</a>
       `;
     }
   }

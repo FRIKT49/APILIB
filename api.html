@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="light">
+<html lang="ru" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -83,6 +83,26 @@
               <ul id="apiFeaturesList" class="features-list">
                 <!-- Features rendered dynamically -->
               </ul>
+            </div>
+
+            <!-- Quick Start Code Snippet Box -->
+            <div class="card" style="margin-bottom: 30px;">
+              <div class="flex-between" style="margin-bottom: 12px;">
+                <div>
+                  <h2 style="font-size: 1.35rem; margin-bottom: 4px;">Быстрый старт</h2>
+                  <p class="text-muted text-sm">Пример интеграции API в ваше веб-приложение</p>
+                </div>
+                <button id="btnCopySnippet" class="btn btn-secondary btn-sm">
+                  📋 Скопировать код
+                </button>
+              </div>
+              <div class="code-snippet-box">
+                <div class="code-snippet-header">
+                  <span>JavaScript (Fetch / ES6)</span>
+                  <span class="text-xs" id="codeAuthHint" style="opacity: 0.8;">REST API</span>
+                </div>
+                <pre class="code-snippet-pre"><code id="codeSnippetText">// Загрузка примера...</code></pre>
+              </div>
             </div>
 
             <!-- Reviews Section -->
@@ -309,6 +329,56 @@
               "Быстрый отклик серверов"
             ];
         featuresContainer.innerHTML = features.map((f) => `<li>${escapeHtml(f)}</li>`).join("");
+
+        // Code Snippet Generation
+        const baseUrl = currentApi.websiteUrl || "https://api.example.com";
+        let authSnippet = "";
+        if (currentApi.authentication === "API Key") {
+          authSnippet = `\n        "X-API-Key": "YOUR_API_KEY",`;
+        } else if (currentApi.authentication === "Bearer Token" || currentApi.authentication === "OAuth 2.0") {
+          authSnippet = `\n        "Authorization": "Bearer YOUR_ACCESS_TOKEN",`;
+        }
+        
+        const cleanFuncName = (currentApi.name || "Api").replace(/[^a-zA-Z0-9]/g, "");
+        const snippet = `// Быстрый старт: запрос к ${currentApi.name}
+async function fetch${cleanFuncName}Data() {
+  try {
+    const response = await fetch("${baseUrl}/v1/resource", {
+      method: "GET",
+      headers: {
+        "Accept": "application/json",${authSnippet}
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(\`HTTP error! status: \${response.status}\`);
+    }
+
+    const data = await response.json();
+    console.log("Данные ${currentApi.name}:", data);
+    return data;
+  } catch (error) {
+    console.error("Ошибка при запросе к ${currentApi.name}:", error);
+  }
+}
+
+fetch${cleanFuncName}Data();`;
+
+        document.getElementById("codeSnippetText").textContent = snippet;
+        document.getElementById("codeAuthHint").textContent = `Auth: ${currentApi.authentication || "None"}`;
+
+        const copyBtn = document.getElementById("btnCopySnippet");
+        copyBtn.onclick = () => {
+          navigator.clipboard.writeText(snippet).then(() => {
+            copyBtn.textContent = "✅ Скопировано!";
+            toast.success("Пример кода скопирован в буфер обмена!");
+            setTimeout(() => {
+              copyBtn.textContent = "📋 Скопировать код";
+            }, 2500);
+          }).catch(() => {
+            toast.error("Не удалось скопировать код");
+          });
+        };
 
         // Specs Table
         document.getElementById("specFormat").textContent = currentApi.format || "JSON";

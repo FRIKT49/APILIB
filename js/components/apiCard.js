@@ -46,7 +46,7 @@ export function createApiCardElement(api, isFavorite = false) {
         ${logoHtml}
         <div class="api-title-group">
           <h3 class="api-card-title" title="${escapeHtml(api.name)}">${escapeHtml(api.name)}</h3>
-          <div class="api-card-category">${escapeHtml(api.category || "General")}</div>
+          <div class="api-card-category"><span class="status-dot"></span>${escapeHtml(api.category || "General")}</div>
         </div>
       </div>
       <button class="btn-favorite-card ${isFavorite ? "active" : ""}" 

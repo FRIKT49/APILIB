@@ -8,11 +8,17 @@
     "start": "node server.js",
     "dev": "node --watch server.js"
   },
-  "keywords": ["api", "catalog", "firebase", "firestore"],
+  "keywords": [
+    "api",
+    "catalog",
+    "firebase",
+    "firestore"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "three": "^0.185.1"
   }
 }

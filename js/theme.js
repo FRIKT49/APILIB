@@ -6,13 +6,18 @@
 const THEME_KEY = "api_library_theme";
 
 export function getPreferredTheme() {
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    const qTheme = params.get("theme");
+    if (qTheme === "dark" || qTheme === "light") {
+      return qTheme;
+    }
+  }
   const saved = localStorage.getItem(THEME_KEY);
   if (saved === "dark" || saved === "light") {
     return saved;
   }
-  return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return "dark";
 }
 
 export function setTheme(theme) {

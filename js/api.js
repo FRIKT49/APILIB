@@ -120,6 +120,27 @@ export function subscribeToApis(filterParams, callback) {
   }
 
   try {
+    // 1. Instantaneous render via Server API (< 50ms)
+    (async () => {
+      try {
+        const params = new URLSearchParams();
+        if (filterParams.category && filterParams.category !== "All") params.set("category", filterParams.category);
+        if (filterParams.authentication && filterParams.authentication !== "All") params.set("auth", filterParams.authentication);
+        if (filterParams.pricing && filterParams.pricing !== "All") params.set("pricing", filterParams.pricing);
+        if (filterParams.format && filterParams.format !== "All") params.set("format", filterParams.format);
+        if (filterParams.sortBy) params.set("sortBy", filterParams.sortBy);
+        if (filterParams.searchKeyword) params.set("q", filterParams.searchKeyword);
+
+        const res = await fetch(`/api/apis?${params.toString()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.apis && data.apis.length > 0) {
+            callback(data.apis, null, null);
+          }
+        }
+      } catch (_) {}
+    })();
+
     const constraints = buildQueryConstraints(filterParams);
     const q = query(collection(db, "apis"), ...constraints);
 
@@ -134,24 +155,7 @@ export function subscribeToApis(filterParams, callback) {
         callback(apis, lastVisible, null);
       },
       async (error) => {
-        console.warn("Firestore onSnapshot blocked or unavailable, attempting Server API fallback:", error.message);
-        try {
-          const params = new URLSearchParams();
-          if (filterParams.category && filterParams.category !== "All") params.set("category", filterParams.category);
-          if (filterParams.authentication && filterParams.authentication !== "All") params.set("auth", filterParams.authentication);
-          if (filterParams.pricing && filterParams.pricing !== "All") params.set("pricing", filterParams.pricing);
-          if (filterParams.format && filterParams.format !== "All") params.set("format", filterParams.format);
-          if (filterParams.sortBy) params.set("sortBy", filterParams.sortBy);
-          if (filterParams.searchKeyword) params.set("q", filterParams.searchKeyword);
-
-          const res = await fetch(`/api/apis?${params.toString()}`);
-          if (res.ok) {
-            const data = await res.json();
-            callback(data.apis || [], null, null);
-            return;
-          }
-        } catch (_) {}
-        callback([], null, error);
+        console.warn("Firestore onSnapshot note:", error.message);
       }
     );
 

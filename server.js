@@ -82,7 +82,7 @@ app.get("/api/apis", async (req, res) => {
   const { category, auth: authFilter, pricing, format, q, sortBy } = req.query;
 
   try {
-    const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/apis?pageSize=100`;
+    const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/apis?pageSize=300`;
     const response = await fetch(url);
     const data = await response.json();
 

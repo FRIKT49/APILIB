@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="light">
+<html lang="ru" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,18 +16,35 @@
   <div id="navbarContainer"></div>
 
   <main>
-    <!-- Hero Section -->
-    <section class="hero">
-      <div class="container">
-        <div class="hero-badge">
-          <span>⚡</span> Каталог для разработчиков
+    <!-- Hero Section with Antigravity Interactive Particle Canvas -->
+    <section class="hero" id="heroSection">
+      <canvas id="antigravityCanvas" class="antigravity-canvas"></canvas>
+
+      <div class="container hero-content">
+        <div class="hero-brand-pill">
+          <span class="brand-triangle">▲</span>
+          <span>Google Antigravity &middot; API Library</span>
         </div>
-        <h1 class="hero-title">Найди API <span>для своего проекта</span></h1>
+
+        <h1 class="hero-title-minimal">
+          Experience liftoff with the next-gen API platform
+        </h1>
+
         <p class="hero-subtitle">
-          Каталог API для разработчиков — ищи, сравнивай и находи нужные инструменты.
+          Минималистичный каталог API для разработчиков — находите, сравнивайте и подключайте проверенные сервисы.
         </p>
 
-        <!-- Big Search Bar -->
+        <!-- Minimalist Pill Buttons matching antigravity.google -->
+        <div class="hero-actions-group">
+          <button type="button" id="btnHeroExplore" class="btn-pill btn-pill-primary">
+            <span>⚡</span> Найти API
+          </button>
+          <a href="#categories" class="btn-pill btn-pill-secondary">
+            Все категории
+          </a>
+        </div>
+
+        <!-- Command Palette Search Bar -->
         <div class="search-bar-wrapper">
           <div class="search-bar">
             <span class="search-bar-icon">🔍</span>
@@ -35,15 +52,16 @@
               type="text" 
               id="mainSearchInput" 
               class="search-bar-input" 
-              placeholder="Поиск API: weather, maps, payments..."
+              placeholder="Поиск API: OpenAI, Stripe, Weather, Maps, Database..."
               autocomplete="off"
             >
+            <kbd class="search-kbd" title="Нажмите Ctrl+K или / для быстрого фокуса">Ctrl K</kbd>
             <button id="searchClearBtn" class="search-bar-clear" title="Очистить поиск">&times;</button>
           </div>
         </div>
 
         <!-- Categories Filter Chips -->
-        <div id="categories" class="category-chips flex-center" style="margin-top: 20px;">
+        <div id="categories" class="category-chips flex-center" style="margin-top: 24px;">
           <!-- Rendered dynamically by JS -->
         </div>
       </div>
@@ -151,11 +169,13 @@
     import { toggleFavorite } from "./js/profile.js";
     import { onAuthChange } from "./js/auth.js";
     import { db } from "./js/firebase.js";
+    import { initAntigravityCanvas } from "./js/antigravityCanvas.js";
 
-    // Setup Theme, Navbar, Modals
+    // Setup Theme, Navbar, Modals & Interactive Particle Canvas
     initTheme();
     renderNavbar("catalog");
     initModals();
+    initAntigravityCanvas("antigravityCanvas");
 
     const apiGrid = document.getElementById("apiGrid");
     const catalogCount = document.getElementById("catalogCount");
@@ -407,6 +427,28 @@
       filterManager.setSearchQuery("");
       searchInput.focus();
     });
+
+    // Global Keyboard Shortcut: Ctrl+K or Cmd+K or "/" to focus search
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      } else if (e.key === "/" && document.activeElement !== searchInput && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+    });
+
+    // Hero explore button click
+    const btnHeroExplore = document.getElementById("btnHeroExplore");
+    if (btnHeroExplore) {
+      btnHeroExplore.addEventListener("click", () => {
+        searchInput.focus();
+        searchInput.select();
+      });
+    }
 
     // Initial render
     renderCategoryChips(filterManager.getState().category);
