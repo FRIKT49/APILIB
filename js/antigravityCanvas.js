@@ -96,9 +96,10 @@ export function initAntigravityCanvas(canvasId = "antigravityCanvas") {
       this.baseAngle = ringAngle;
       this.baseRadius = baseRadius + radialJitter;
 
-      // Base dimensions in pixels
-      this.baseLength = 8 + (baseRadius / 750) * 10 + lengthJitter;
-      this.baseThickness = 2.4 + (baseRadius / 750) * 1.5;
+      // Base dimensions in pixels: circular dots at rest, blooming into rays under cursor
+      this.baseThickness = 2.8 + (baseRadius / 750) * 1.4;
+      this.baseLength = this.baseThickness; // True circular dot at rest!
+      this.maxStretch = 14 + (baseRadius / 750) * 18 + lengthJitter;
 
       this.currentLength = this.baseLength;
       this.currentThickness = this.baseThickness;
@@ -260,16 +261,15 @@ export function initAntigravityCanvas(canvasId = "antigravityCanvas") {
         const pulseLengthAmp = p.hoverWeight * 8.5; // Elongation pulse
         const pulseThickAmp = p.hoverWeight * 1.3;  // Thickness pulse
 
-        // Elongation: stretch length up to 3.2x
-        const lengthMultiplier = 1 + p.hoverWeight * 2.2;
-        const targetLength = (p.baseLength * lengthMultiplier) + (pulseWave * pulseLengthAmp);
+        // Elongation: stretch from round dot into radiating beam
+        const targetLength = p.baseLength + (p.maxStretch * p.hoverWeight) + (pulseWave * pulseLengthAmp);
 
-        // Magnification: scale thickness up to 2.4x
-        const thicknessMultiplier = 1 + p.hoverWeight * 1.4;
+        // Magnification: scale thickness up to 2.5x
+        const thicknessMultiplier = 1 + p.hoverWeight * 1.5;
         const targetThickness = (p.baseThickness * thicknessMultiplier) + (Math.max(0, pulseWave) * pulseThickAmp);
 
-        p.currentLength += (Math.max(4, targetLength) - p.currentLength) * 0.22;
-        p.currentThickness += (Math.max(1.8, targetThickness) - p.currentThickness) * 0.22;
+        p.currentLength += (Math.max(p.baseLength, targetLength) - p.currentLength) * 0.22;
+        p.currentThickness += (Math.max(p.baseThickness, targetThickness) - p.currentThickness) * 0.22;
 
         // Gentle local magnetic deflection / lens effect
         const angleFromCursor = Math.atan2(dy, dx);
@@ -283,10 +283,10 @@ export function initAntigravityCanvas(canvasId = "antigravityCanvas") {
         // Radial ray alignment with subtle deflection flare
         p.targetAngle = naturalAngle + (angleFromCursor - naturalAngle) * (p.hoverWeight * 0.35);
       } else {
-        // Idle return to baseline
-        const idlePulse = Math.sin(time * 0.002 + p.phase) * 1.0;
-        p.currentLength += (p.baseLength + idlePulse - p.currentLength) * 0.1;
-        p.currentThickness += (p.baseThickness - p.currentThickness) * 0.1;
+        // Idle return to baseline circular dot
+        const idlePulse = Math.sin(time * 0.002 + p.phase) * 0.3;
+        p.currentLength += (p.baseLength + idlePulse - p.currentLength) * 0.12;
+        p.currentThickness += (p.baseThickness + idlePulse - p.currentThickness) * 0.12;
 
         p.repelX += (0 - p.repelX) * 0.08;
         p.repelY += (0 - p.repelY) * 0.08;

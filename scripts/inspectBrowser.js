@@ -18,16 +18,27 @@ import { chromium } from "file:///C:/Users/roman/AppData/Local/npm-cache/_npx/e4
   const targetUrl = process.argv[2] || "http://localhost:3000";
   const outputPath = process.argv[3] || "C:/Users/roman/debug_screen.png";
   const mouseCoords = process.argv[4]; // e.g. "650,350"
+  const scrollTo = process.argv[5]; // e.g. "bottom"
 
   console.log(`Navigating to ${targetUrl}...`);
   await page.goto(targetUrl, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(2000);
 
-  if (mouseCoords) {
-    const [mx, my] = mouseCoords.split(",").map(Number);
-    console.log(`Moving mouse to (${mx}, ${my})...`);
-    await page.mouse.move(mx, my, { steps: 20 });
+  if (scrollTo === "bottom") {
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await page.waitForTimeout(1000);
+  } else if (scrollTo && !isNaN(Number(scrollTo))) {
+    await page.evaluate((y) => window.scrollTo(0, y), Number(scrollTo));
+    await page.waitForTimeout(1000);
+  }
+
+  if (mouseCoords && mouseCoords.includes(",")) {
+    const [mx, my] = mouseCoords.split(",").map(Number);
+    if (!isNaN(mx) && !isNaN(my)) {
+      console.log(`Moving mouse to (${mx}, ${my})...`);
+      await page.mouse.move(mx, my, { steps: 20 });
+      await page.waitForTimeout(1000);
+    }
   }
 
   await page.screenshot({ path: outputPath, fullPage: false });

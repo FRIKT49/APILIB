@@ -5,19 +5,20 @@
 
 /* Mobile Nav Drawer */
 .mobile-nav-overlay {
+  display: none;
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
   z-index: 150;
   opacity: 0;
-  visibility: hidden;
-  transition: opacity var(--transition-normal), visibility var(--transition-normal);
+  overflow: hidden;
+  transition: opacity var(--transition-normal);
 }
 
 .mobile-nav-overlay.open {
+  display: block;
   opacity: 1;
-  visibility: visible;
 }
 
 .mobile-nav-drawer {
@@ -26,11 +27,15 @@
   right: 0;
   bottom: 0;
   width: 280px;
+  max-width: 85vw;
   background-color: var(--bg-surface-elevated);
   border-left: 1px solid var(--border-color);
   z-index: 160;
   transform: translateX(100%);
-  transition: transform var(--transition-normal) cubic-bezier(0.16, 1, 0.3, 1);
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform var(--transition-normal) cubic-bezier(0.16, 1, 0.3, 1),
+              visibility var(--transition-normal);
   display: flex;
   flex-direction: column;
   padding: 24px 20px;
@@ -38,6 +43,8 @@
 
 .mobile-nav-overlay.open .mobile-nav-drawer {
   transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .mobile-nav-header {

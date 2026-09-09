@@ -3,11 +3,11 @@
    Google Antigravity Aesthetic: Deep Space, Cyber Gradients & Glassmorphism
    ========================================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 :root {
-  /* Fonts */
-  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Fonts: Manrope provides modern geometric typography with native Cyrillic glyphs */
+  --font-sans: "Manrope", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
 
   /* Transitions */
@@ -66,9 +66,9 @@
   --info: #38bdf8;
   --info-bg: rgba(56, 189, 248, 0.12);
 
-  --card-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.5);
-  --card-shadow-hover: 0 16px 36px -4px rgba(0, 0, 0, 0.7), 0 0 25px rgba(99, 102, 241, 0.18);
-  --nav-backdrop: rgba(7, 8, 13, 0.62);
+  --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+  --card-shadow-hover: 0 12px 28px -4px rgba(0, 0, 0, 0.6);
+  --nav-backdrop: rgba(7, 8, 13, 0.52);
 
   --grid-dot-color: rgba(255, 255, 255, 0.04);
   --ambient-glow: none;
@@ -113,7 +113,7 @@
 
   --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
   --card-shadow-hover: 0 16px 36px -4px rgba(0, 0, 0, 0.08);
-  --nav-backdrop: rgba(255, 255, 255, 0.72);
+  --nav-backdrop: rgba(255, 255, 255, 0.62);
 
   --grid-dot-color: rgba(0, 0, 0, 0.03);
   --ambient-glow: none;
@@ -131,22 +131,37 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Interactive Background Dots Canvas - Scoped to initial screen (100vh) */
+.bg-dots-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  contain: strict;
+  transform: translateZ(0);
+  will-change: transform;
 }
 
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-primary);
-  background-image: 
-    var(--ambient-glow),
-    radial-gradient(var(--grid-dot-color) 1px, transparent 1px);
-  background-size: 100% 600px, 32px 32px;
-  background-repeat: no-repeat, repeat;
-  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow-x: hidden;
+  max-width: 100%;
+  width: 100%;
   transition: background-color var(--transition-normal), color var(--transition-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -265,13 +280,13 @@ p {
   background: #0f172a;
   color: #ffffff;
   border: 1px solid #0f172a;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 .btn-pill-primary:hover {
   background: #1e293b;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
   color: #ffffff;
 }
 
@@ -279,14 +294,14 @@ p {
   background: #ffffff;
   color: #07090e;
   border: 1px solid #ffffff;
-  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme="dark"] .btn-pill-primary:hover {
   background: #f1f5f9;
   color: #000000;
-  box-shadow: 0 8px 28px rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transform: translateY(-1px);
 }
 
 .btn-pill-secondary {
@@ -297,28 +312,28 @@ p {
 
 .btn-pill-secondary:hover {
   background: #e2e8f0;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 [data-theme="dark"] .btn-pill-secondary {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
   color: #f8fafc;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 [data-theme="dark"] .btn-pill-secondary:hover {
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
 }
 
-/* Antigravity Buttons */
+/* Minimalist Clean Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 20px;
+  padding: 9px 18px;
   border-radius: var(--radius-md);
   font-weight: 600;
   font-size: 0.9375rem;
@@ -337,17 +352,17 @@ p {
 }
 
 .btn-primary {
-  background: var(--gradient-antigravity);
+  background: var(--accent);
   color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
   position: relative;
-  overflow: hidden;
 }
 
 .btn-primary:hover {
-  box-shadow: 0 0 28px rgba(99, 102, 241, 0.55);
-  transform: translateY(-2px);
+  background: var(--accent-hover);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
@@ -552,18 +567,5 @@ p {
   margin: 24px 0;
 }
 
-/* Footer */
-.footer {
-  margin-top: auto;
-  background-color: var(--bg-secondary);
-  border-top: 1px solid var(--border-color);
-  padding: 40px 0 28px;
-}
 
-.footer-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-}
+

@@ -6,8 +6,13 @@
 import { onAuthChange, logoutUser } from "../auth.js";
 import { isConfigPlaceholder } from "../firebase.js";
 import { toast } from "./toast.js";
+import { initBgDotsCanvas } from "../bgDotsCanvas.js";
+import { renderFooter } from "./footer.js";
 
 export function renderNavbar(activePage = "") {
+  initBgDotsCanvas();
+  renderFooter();
+
   const navContainer = document.getElementById("navbarContainer");
   if (!navContainer) return;
 
@@ -15,7 +20,7 @@ export function renderNavbar(activePage = "") {
   const themeIcon = currentTheme === "dark" ? "☀" : "☾";
 
   navContainer.innerHTML = `
-    <nav class="navbar">
+    <nav class="navbar" id="mainNavbar">
       ${
         isConfigPlaceholder
           ? `<div style="background: var(--warning-bg); border-bottom: 1px solid var(--warning); color: var(--text-primary); font-size: 0.8125rem; padding: 6px 16px; text-align: center;">
@@ -24,50 +29,134 @@ export function renderNavbar(activePage = "") {
           : ""
       }
       <div class="container navbar-inner">
-        <!-- Logo -->
+        <!-- Brand Logo -->
         <a href="index.html" class="nav-brand">
           <span class="brand-triangle" style="color: #3b82f6; font-size: 1.15rem; transform: translateY(-1px);">▲</span>
           <span>API Library</span>
         </a>
 
-        <!-- Desktop Links -->
+        <!-- Desktop Navigation Links -->
         <ul class="nav-links">
           <li>
-            <a href="index.html" class="nav-link ${activePage === "catalog" ? "active" : ""}">
-              Каталог
+            <a href="catalog.html" class="nav-link ${activePage === "catalog" ? "active" : ""}">
+              Catalog
+            </a>
+          </li>
+          
+          <!-- Dropdown: Categories -->
+          <li class="nav-item-dropdown" id="navCategoriesDropdown">
+            <a href="catalog.html#categories" class="nav-link nav-dropdown-trigger" id="categoriesTriggerBtn" aria-expanded="false" aria-haspopup="true">
+              <span>Categories</span>
+              <svg class="nav-chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 1L5 5L9 1"/>
+              </svg>
+            </a>
+
+            <!-- Megamenu Panel matching antigravity.google -->
+            <div class="nav-megamenu" id="navMegamenuPanel" role="menu">
+              <div class="nav-megamenu-inner">
+                <!-- Left Overview Column -->
+                <div class="nav-megamenu-left">
+                  <div>
+                    <div class="nav-megamenu-kicker">API CATALOG</div>
+                    <h3 class="nav-megamenu-title">
+                      The Complete API Ecosystem<br>by Domain
+                    </h3>
+                    <p class="nav-megamenu-desc">
+                      Over 100 verified developer tools for web apps, microservices, and autonomous AI systems.
+                    </p>
+                  </div>
+                  <a href="catalog.html" class="nav-megamenu-btn">
+                    All Categories &rarr;
+                  </a>
+                </div>
+
+                <!-- Vertical Divider -->
+                <div class="nav-megamenu-divider"></div>
+
+                <!-- Right Categories Columns -->
+                <div class="nav-megamenu-right">
+                  <div class="nav-megamenu-col">
+                    <a href="catalog.html?category=AI" class="megamenu-link" role="menuitem">
+                      <span class="megamenu-name">Artificial Intelligence</span>
+                      <span class="megamenu-tag">AI & LLM</span>
+                    </a>
+                    <a href="catalog.html?category=Weather" class="megamenu-link" role="menuitem">
+                      <span class="megamenu-name">Weather & Climate</span>
+                      <span class="megamenu-tag">Forecasts & Radar</span>
+                    </a>
+                    <a href="catalog.html?category=Maps" class="megamenu-link" role="menuitem">
+                      <span class="megamenu-name">Maps & Geodata</span>
+                      <span class="megamenu-tag">Routes & Tiles</span>
+                    </a>
+                    <a href="catalog.html?category=Finance" class="megamenu-link" role="menuitem">
+                      <span class="megamenu-name">Finance & Payments</span>
+                      <span class="megamenu-tag">Crypto & Forex</span>
+                    </a>
+                  </div>
+
+                  <div class="nav-megamenu-col">
+                    <a href="catalog.html?category=Development" class="megamenu-link" role="menuitem">
+                      <span class="megamenu-name">Development & DevOps</span>
+                      <span class="megamenu-tag">CI/CD & Cloud</span>
+                    </a>
+                    <a href="catalog.html?category=Social" class="megamenu-link" role="menuitem">
+                      <span class="megamenu-name">Social & Messaging</span>
+                      <span class="megamenu-tag">Bots & Channels</span>
+                    </a>
+                    <a href="catalog.html?category=News" class="megamenu-link" role="menuitem">
+                      <span class="megamenu-name">News & Media</span>
+                      <span class="megamenu-tag">Feeds & Articles</span>
+                    </a>
+                    <a href="catalog.html?category=E-commerce" class="megamenu-link" role="menuitem">
+                      <span class="megamenu-name">E-commerce & Stores</span>
+                      <span class="megamenu-tag">Catalog & Tracking</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+
+          <li>
+            <a href="index.html#about" class="nav-link">
+              About
             </a>
           </li>
           <li>
-            <a href="index.html#categories" class="nav-link ${activePage === "categories" ? "active" : ""}">
-              Категории
+            <a href="https://developer.mozilla.org/en-US/docs/Web/API" target="_blank" rel="noopener" class="nav-link">
+              Documentation
             </a>
           </li>
           <li id="adminNavLink" style="display: none;">
             <a href="admin.html" class="nav-link ${activePage === "admin" ? "active" : ""}">
-              Админ-панель
+              Admin
             </a>
           </li>
         </ul>
 
-        <!-- Actions -->
+        <!-- Minimalist Actions -->
         <div class="nav-actions">
-          <!-- Theme Toggle -->
-          <button class="theme-toggle-btn" aria-label="Сменить тему" title="Сменить тему">
-            ${themeIcon}
-          </button>
-
           <!-- Auth Dynamic Area -->
           <div id="navAuthArea">
-            <a href="login.html" class="btn-pill btn-pill-primary" style="padding: 7px 18px; font-size: 0.875rem;">Войти</a>
+            <a href="login.html" class="nav-link" style="padding: 6px 14px; font-weight: 500;">Sign in</a>
+            <a href="catalog.html" class="btn-pill btn-pill-primary" style="padding: 7px 18px; font-size: 0.875rem;">
+              Explore APIs &rarr;
+            </a>
           </div>
 
           <!-- Mobile Hamburger -->
-          <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Меню">
+          <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="Menu">
             ☰
           </button>
         </div>
       </div>
     </nav>
+
+    <!-- Floating Corner Theme Toggle -->
+    <button class="theme-toggle-btn floating-theme-toggle" id="floatingThemeToggle" aria-label="Toggle theme" title="Toggle theme">
+      ${themeIcon}
+    </button>
 
     <!-- Mobile Drawer Overlay -->
     <div class="mobile-nav-overlay" id="mobileNavOverlay">
@@ -81,18 +170,203 @@ export function renderNavbar(activePage = "") {
         </div>
 
         <ul class="mobile-nav-links">
-          <li><a href="index.html" class="nav-link">Каталог</a></li>
-          <li><a href="index.html#categories" class="nav-link">Категории</a></li>
-          <li id="mobileAdminLink" style="display: none;"><a href="admin.html" class="nav-link">Админ-панель</a></li>
-          <li id="mobileProfileLink" style="display: none;"><a href="profile.html" class="nav-link">Личный кабинет</a></li>
+          <li><a href="catalog.html" class="nav-link">Catalog</a></li>
+          <li><a href="catalog.html#categories" class="nav-link">Categories</a></li>
+          <li><a href="index.html#about" class="nav-link">About</a></li>
+          <li><a href="https://developer.mozilla.org/en-US/docs/Web/API" target="_blank" rel="noopener" class="nav-link">Documentation</a></li>
+          <li id="mobileAdminLink" style="display: none;"><a href="admin.html" class="nav-link">Admin</a></li>
+          <li id="mobileProfileLink" style="display: none;"><a href="profile.html" class="nav-link">Profile</a></li>
         </ul>
 
         <div class="mobile-nav-actions" id="mobileAuthArea">
-          <a href="login.html" class="btn btn-primary">Войти</a>
+          <a href="login.html" class="btn btn-primary">Sign in</a>
         </div>
       </div>
     </div>
   `;
+
+  // Watch scroll to add/remove subtle glass backdrop when scrolled
+  const mainNavbar = document.getElementById("mainNavbar");
+  const onScroll = () => {
+    if (window.scrollY > 15) {
+      mainNavbar?.classList.add("scrolled");
+    } else {
+      mainNavbar?.classList.remove("scrolled");
+    }
+  };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  // Categories Megamenu Dropdown Controller
+  const categoriesDropdown = document.getElementById("navCategoriesDropdown");
+  const triggerBtn = document.getElementById("categoriesTriggerBtn");
+  let closeTimer = null;
+  let isMouseOutsideWindow = false;
+
+  const isPointerLeavingWindow = (e) => {
+    if (!e) return false;
+    // If relatedTarget is null, the cursor has left the DOM / browser window
+    if (!e.relatedTarget) return true;
+    // Check viewport boundary coordinates
+    const y = e.clientY;
+    const x = e.clientX;
+    if (y <= 0 || x <= 0 || x >= window.innerWidth || y >= window.innerHeight) {
+      return true;
+    }
+    return false;
+  };
+
+  const openDropdown = () => {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+    categoriesDropdown?.classList.add("is-open");
+    mainNavbar?.classList.add("megamenu-open");
+    triggerBtn?.setAttribute("aria-expanded", "true");
+  };
+
+  const closeDropdown = (force = false) => {
+    if (closeTimer) {
+      clearTimeout(closeTimer);
+      closeTimer = null;
+    }
+    if (force) {
+      categoriesDropdown?.classList.remove("is-open");
+      mainNavbar?.classList.remove("megamenu-open");
+      triggerBtn?.setAttribute("aria-expanded", "false");
+      return;
+    }
+    closeTimer = setTimeout(() => {
+      // If mouse is currently outside the website window (e.g. on URL bar, bookmarks, tabs), DO NOT CLOSE!
+      if (isMouseOutsideWindow) {
+        return;
+      }
+      categoriesDropdown?.classList.remove("is-open");
+      mainNavbar?.classList.remove("megamenu-open");
+      triggerBtn?.setAttribute("aria-expanded", "false");
+    }, 150);
+  };
+
+  if (categoriesDropdown) {
+    categoriesDropdown.addEventListener("mouseenter", () => {
+      isMouseOutsideWindow = false;
+      openDropdown();
+    });
+
+    categoriesDropdown.addEventListener("mouseleave", (e) => {
+      // If cursor left the website bounds (e.g. moved up onto the URL bar, tabs, or outside window),
+      // DO NOT close the dropdown!
+      if (isPointerLeavingWindow(e)) {
+        isMouseOutsideWindow = true;
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+        return;
+      }
+      closeDropdown();
+    });
+
+    // Detect when cursor leaves the browser window (e.g. moving up into URL bar, tabs, bookmarks, or outside screen)
+    document.addEventListener("mouseleave", (e) => {
+      isMouseOutsideWindow = true;
+      if (closeTimer) {
+        clearTimeout(closeTimer);
+        closeTimer = null;
+      }
+    });
+
+    // Detect when cursor re-enters the browser window
+    document.addEventListener("mouseenter", () => {
+      isMouseOutsideWindow = false;
+    });
+
+    window.addEventListener("mouseout", (e) => {
+      if (isPointerLeavingWindow(e)) {
+        isMouseOutsideWindow = true;
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+      }
+    });
+
+    // When cursor is inside the window, track element hovers
+    document.addEventListener("mouseover", (e) => {
+      isMouseOutsideWindow = false;
+      if (!categoriesDropdown.classList.contains("is-open")) return;
+      if (categoriesDropdown.contains(e.target)) {
+        if (closeTimer) {
+          clearTimeout(closeTimer);
+          closeTimer = null;
+        }
+        return;
+      }
+      closeDropdown();
+    });
+
+    triggerBtn?.addEventListener("click", (e) => {
+      if (window.innerWidth > 992) {
+        e.preventDefault();
+        const isOpen = categoriesDropdown.classList.contains("is-open");
+        if (isOpen) {
+          closeDropdown(true);
+        } else {
+          openDropdown();
+        }
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeDropdown(true);
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!categoriesDropdown.contains(e.target)) {
+        closeDropdown(true);
+      }
+    });
+
+    // When clicking any link inside the megamenu, close it immediately
+    categoriesDropdown.querySelectorAll("a").forEach((link) => {
+      link.addEventListener("click", () => {
+        closeDropdown(true);
+      });
+    });
+  }
+
+  // Search trigger button & global Ctrl+K
+  const navSearch = document.getElementById("navSearchTrigger");
+  if (navSearch) {
+    navSearch.addEventListener("click", () => {
+      const searchInput = document.getElementById("mainSearchInput");
+      if (searchInput) {
+        searchInput.focus();
+        searchInput.scrollIntoView({ behavior: "smooth", block: "center" });
+      } else {
+        window.location.href = "catalog.html?search=true";
+      }
+    });
+  }
+
+  if (!window._ctrlKInitialized) {
+    window._ctrlKInitialized = true;
+    window.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        const searchInput = document.getElementById("mainSearchInput");
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+          window.location.href = "catalog.html?search=true";
+        }
+      }
+    });
+  }
 
   // Attach mobile drawer events
   const mobileBtn = document.getElementById("mobileMenuBtn");
@@ -114,6 +388,7 @@ export function renderNavbar(activePage = "") {
 }
 
 function updateNavAuthState(user, profile) {
+  window.__updateNavAuthState = updateNavAuthState;
   const desktopAuth = document.getElementById("navAuthArea");
   const mobileAuth = document.getElementById("mobileAuthArea");
   const adminNav = document.getElementById("adminNavLink");
@@ -131,13 +406,16 @@ function updateNavAuthState(user, profile) {
   if (user) {
     const displayName = profile?.displayName || user.displayName || user.email.split("@")[0];
     const initial = (displayName[0] || "U").toUpperCase();
+    const photoURL = profile?.photoURL || user.photoURL;
 
     desktopAuth.innerHTML = `
       <div class="user-menu-wrapper">
-        <button class="user-avatar-btn" id="userMenuToggle" aria-haspopup="true">
-          <div class="user-avatar">${initial}</div>
-          <span class="user-name-label">${escapeHtml(displayName)}</span>
-          <span style="font-size: 0.7rem; color: var(--text-muted);">▼</span>
+        <button class="user-avatar-btn" id="userMenuToggle" aria-haspopup="true" aria-expanded="false" title="${escapeHtml(displayName)}">
+          ${
+            photoURL
+              ? `<img src="${escapeHtml(photoURL)}" alt="${escapeHtml(displayName)}" class="user-avatar-img" />`
+              : `<div class="user-avatar">${initial}</div>`
+          }
         </button>
         <div class="user-dropdown" id="userDropdown">
           <div class="user-dropdown-header">
@@ -145,18 +423,18 @@ function updateNavAuthState(user, profile) {
             <div style="font-size: 0.775rem; color: var(--text-muted);">${escapeHtml(user.email)}</div>
             ${
               isAdmin
-                ? `<span class="badge badge-primary" style="margin-top: 6px;">Администратор</span>`
+                ? `<span class="badge badge-primary" style="margin-top: 6px;">Administrator</span>`
                 : ""
             }
           </div>
-          <a href="profile.html" class="user-dropdown-item">👤 Личный кабинет</a>
+          <a href="profile.html" class="user-dropdown-item">👤 Profile</a>
           ${
             isAdmin
-              ? `<a href="admin.html" class="user-dropdown-item">⚙️ Админ-панель</a>`
+              ? `<a href="admin.html" class="user-dropdown-item">⚙️ Admin Dashboard</a>`
               : ""
           }
           <div class="divider" style="margin: 4px 0;"></div>
-          <button class="user-dropdown-item danger" id="btnLogout">🚪 Выйти</button>
+          <button class="user-dropdown-item danger" id="btnLogout">🚪 Log out</button>
         </div>
       </div>
     `;
@@ -167,11 +445,13 @@ function updateNavAuthState(user, profile) {
     if (toggleBtn && dropdown) {
       toggleBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        dropdown.classList.toggle("show");
+        const isOpen = dropdown.classList.toggle("show");
+        toggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
       });
 
       document.addEventListener("click", () => {
         dropdown.classList.remove("show");
+        toggleBtn.setAttribute("aria-expanded", "false");
       });
     }
 
@@ -181,10 +461,10 @@ function updateNavAuthState(user, profile) {
       logoutBtn.addEventListener("click", async () => {
         try {
           await logoutUser();
-          toast.info("Вы вышли из системы");
+          toast.info("You have signed out");
           window.location.reload();
         } catch (err) {
-          toast.error("Ошибка при выходе: " + err.message);
+          toast.error("Logout error: " + err.message);
         }
       });
     }
@@ -195,7 +475,7 @@ function updateNavAuthState(user, profile) {
         <div style="padding: 10px 0; border-top: 1px solid var(--border-color); margin-top: 10px;">
           <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 2px;">${escapeHtml(displayName)}</div>
           <div style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 12px;">${escapeHtml(user.email)}</div>
-          <button class="btn btn-secondary btn-sm" id="mobileBtnLogout" style="width: 100%;">Выйти</button>
+          <button class="btn btn-secondary btn-sm" id="mobileBtnLogout" style="width: 100%;">Log out</button>
         </div>
       `;
       const mobLogoutBtn = document.getElementById("mobileBtnLogout");
@@ -209,13 +489,13 @@ function updateNavAuthState(user, profile) {
   } else {
     // Unauthenticated
     desktopAuth.innerHTML = `
-      <a href="login.html" class="btn-pill btn-pill-secondary" style="padding: 7px 16px; font-size: 0.85rem; margin-right: 6px;">Войти</a>
-      <a href="register.html" class="btn-pill btn-pill-primary" style="padding: 7px 18px; font-size: 0.85rem;">Регистрация</a>
+      <a href="login.html" class="btn-pill btn-pill-secondary" style="padding: 7px 16px; font-size: 0.85rem; margin-right: 6px;">Sign in</a>
+      <a href="register.html" class="btn-pill btn-pill-primary" style="padding: 7px 18px; font-size: 0.85rem;">Get started</a>
     `;
     if (mobileAuth) {
       mobileAuth.innerHTML = `
-        <a href="login.html" class="btn-pill btn-pill-secondary" style="width: 100%; justify-content: center; margin-bottom: 8px;">Войти</a>
-        <a href="register.html" class="btn-pill btn-pill-primary" style="width: 100%; justify-content: center;">Регистрация</a>
+        <a href="login.html" class="btn-pill btn-pill-secondary" style="width: 100%; justify-content: center; margin-bottom: 8px;">Sign in</a>
+        <a href="register.html" class="btn-pill btn-pill-primary" style="width: 100%; justify-content: center;">Get started</a>
       `;
     }
   }

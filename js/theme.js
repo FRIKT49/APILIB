@@ -37,8 +37,8 @@ function updateThemeButtons(theme) {
   const buttons = document.querySelectorAll(".theme-toggle-btn");
   buttons.forEach((btn) => {
     btn.innerHTML = theme === "dark" ? "☀" : "☾";
-    btn.setAttribute("aria-label", theme === "dark" ? "Включить светлую тему" : "Включить темную тему");
-    btn.setAttribute("title", theme === "dark" ? "Включить светлую тему" : "Включить темную тему");
+    btn.setAttribute("aria-label", theme === "dark" ? "Switch to light theme" : "Switch to dark theme");
+    btn.setAttribute("title", theme === "dark" ? "Switch to light theme" : "Switch to dark theme");
   });
 }
 

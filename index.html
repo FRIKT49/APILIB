@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="dark">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>API Library — Каталог API для разработчиков</title>
-  <meta name="description" content="Каталог сторонних API в формате онлайн-библиотеки. Поиск, сравнение и документация лучших инструментов для разработчиков.">
+  <title>API Library — Production-Ready Developer API Catalog</title>
+  <meta name="description" content="A curated, minimalist catalog of production-ready developer APIs, OpenAPI specs, and MCP integrations for web applications and autonomous AI agents.">
   
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
@@ -12,448 +12,222 @@
   <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
+  <!-- Interactive Background Dots Canvas (Scoped to 100vh initial screen) -->
+  <canvas id="bgDotsCanvas" class="bg-dots-canvas"></canvas>
+
   <!-- Header / Navbar Container -->
   <div id="navbarContainer"></div>
 
   <main>
-    <!-- Hero Section with Antigravity Interactive Particle Canvas -->
-    <section class="hero" id="heroSection">
-      <canvas id="antigravityCanvas" class="antigravity-canvas"></canvas>
-
-      <div class="container hero-content">
-        <div class="hero-brand-pill">
-          <span class="brand-triangle">▲</span>
-          <span>Google Antigravity &middot; API Library</span>
+    <!-- Landing Hero Section (100vh initial screen) -->
+    <section class="landing-hero" id="heroSection">
+      <div class="landing-hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-symbol">▲</span> API Library
         </div>
 
-        <h1 class="hero-title-minimal">
-          Experience liftoff with the next-gen API platform
+        <h1 class="landing-title">
+          Connect anything, build everything<br>with production-ready APIs
         </h1>
 
-        <p class="hero-subtitle">
-          Минималистичный каталог API для разработчиков — находите, сравнивайте и подключайте проверенные сервисы.
-        </p>
-
-        <!-- Minimalist Pill Buttons matching antigravity.google -->
-        <div class="hero-actions-group">
-          <button type="button" id="btnHeroExplore" class="btn-pill btn-pill-primary">
-            <span>⚡</span> Найти API
-          </button>
-          <a href="#categories" class="btn-pill btn-pill-secondary">
-            Все категории
+        <div class="landing-actions">
+          <a href="catalog.html" class="btn-pill btn-pill-primary" style="padding: 11px 28px; font-size: 0.95rem;">
+            Explore APIs &rarr;
+          </a>
+          <a href="#about" class="btn-pill btn-pill-secondary" style="padding: 11px 26px; font-size: 0.95rem;">
+            Features & Use Cases &darr;
           </a>
         </div>
-
-        <!-- Command Palette Search Bar -->
-        <div class="search-bar-wrapper">
-          <div class="search-bar">
-            <span class="search-bar-icon">🔍</span>
-            <input 
-              type="text" 
-              id="mainSearchInput" 
-              class="search-bar-input" 
-              placeholder="Поиск API: OpenAI, Stripe, Weather, Maps, Database..."
-              autocomplete="off"
-            >
-            <kbd class="search-kbd" title="Нажмите Ctrl+K или / для быстрого фокуса">Ctrl K</kbd>
-            <button id="searchClearBtn" class="search-bar-clear" title="Очистить поиск">&times;</button>
-          </div>
-        </div>
-
-        <!-- Categories Filter Chips -->
-        <div id="categories" class="category-chips flex-center" style="margin-top: 24px;">
-          <!-- Rendered dynamically by JS -->
-        </div>
       </div>
+
+      <!-- Subtle Scroll Down Indicator -->
+      <a href="#about" class="scroll-indicator" aria-label="Scroll down to features">
+        <span>Scroll down</span>
+        <span>&darr;</span>
+      </a>
     </section>
 
-    <!-- Catalog Section -->
-    <section class="section" style="padding-top: 0;">
+    <!-- Platform Stats & Information Section -->
+    <section class="section" id="about" style="padding-top: 50px; position: relative; z-index: 2;">
       <div class="container">
-        <!-- Catalog Controls & Filters -->
-        <div class="catalog-controls">
-          <div class="filters-group">
-            <!-- Auth Filter -->
-            <div class="filter-select-wrapper">
-              <label for="authFilter">Авторизация:</label>
-              <select id="authFilter" class="filter-select">
-                <option value="All">Все</option>
-                <option value="None">None</option>
-                <option value="API Key">API Key</option>
-                <option value="OAuth 2.0">OAuth 2.0</option>
-                <option value="Bearer Token">Bearer Token</option>
-                <option value="Basic Auth">Basic Auth</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <!-- Pricing Filter -->
-            <div class="filter-select-wrapper">
-              <label for="pricingFilter">Цена:</label>
-              <select id="pricingFilter" class="filter-select">
-                <option value="All">Все</option>
-                <option value="Free">Бесплатный тариф</option>
-                <option value="Freemium">Freemium</option>
-                <option value="Paid">Платные</option>
-              </select>
-            </div>
-
-            <!-- Format Filter -->
-            <div class="filter-select-wrapper">
-              <label for="formatFilter">Формат:</label>
-              <select id="formatFilter" class="filter-select">
-                <option value="All">Все</option>
-                <option value="JSON">JSON</option>
-                <option value="GraphQL">GraphQL</option>
-                <option value="XML">XML</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-
-            <!-- Sort By -->
-            <div class="filter-select-wrapper">
-              <label for="sortFilter">Сортировка:</label>
-              <select id="sortFilter" class="filter-select">
-                <option value="rating">По рейтингу ★</option>
-                <option value="popularity">По популярности 👁</option>
-                <option value="createdAt">По дате добавления 🕒</option>
-                <option value="name">По названию (А-Я)</option>
-              </select>
-            </div>
+        <!-- Section Header / Mission Statement -->
+        <div class="text-center" style="max-width: 740px; margin: 0 auto 48px;">
+          <div style="display: inline-block; font-size: 0.8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-primary); margin-bottom: 12px;">
+            About the Platform
           </div>
+          <h2 style="font-size: clamp(1.9rem, 3.4vw, 2.5rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 16px; color: var(--text-primary); line-height: 1.2;">
+            A unified integration hub for developers and AI agents
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 1.0625rem; line-height: 1.65;">
+            No more juggling dozens of open tabs with outdated documentation. API Library curates verified web services, standardizes response contracts, and delivers ready-to-run integration snippets in one click.
+          </p>
+        </div>
 
-          <div class="catalog-stats">
-            <span id="catalogCount">Загрузка каталога...</span>
+        <!-- Metrics Strip -->
+        <div class="metrics-grid" style="margin: 0 0 70px;">
+          <div class="metric-card">
+            <div class="metric-val">100+</div>
+            <div class="metric-desc">Curated & Tested APIs</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val">12</div>
+            <div class="metric-desc">Core Service Categories</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val">&lt; 50ms</div>
+            <div class="metric-desc">Instant Search Latency</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-val">100%</div>
+            <div class="metric-desc">Open Specifications & Schemas</div>
           </div>
         </div>
 
-        <!-- API Cards Grid -->
-        <div id="apiGrid" class="api-grid">
-          <!-- Skeletons will be injected here initially -->
+        <!-- Use Cases Section Header -->
+        <div class="text-center" style="max-width: 640px; margin: 0 auto 36px;">
+          <div style="display: inline-block; font-size: 0.8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-primary); margin-bottom: 12px;">
+            Use Cases
+          </div>
+          <h2 style="font-size: clamp(1.8rem, 3.2vw, 2.3rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 12px; color: var(--text-primary);">
+            Engineered for modern workflows
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6;">
+            Built for both human software engineers and autonomous agent pipelines.
+          </p>
         </div>
 
-        <!-- Pagination (Load More) -->
-        <div class="pagination-wrapper">
-          <button id="btnLoadMore" class="btn btn-secondary btn-lg" style="display: none;">
-            Показать ещё
-          </button>
+        <!-- Capabilities Cards Grid -->
+        <div class="capabilities-grid">
+          <div class="capability-card">
+            <div class="capability-icon">⚡</div>
+            <h3 class="capability-title">Web & Mobile Development</h3>
+            <p class="capability-text">
+              Instant fuzzy search across titles, endpoints, and tags (<kbd class="nav-search-kbd">Ctrl K</kbd>). Transparent authentication badges: API Key, Bearer Token, or No Auth.
+            </p>
+          </div>
+
+          <div class="capability-card">
+            <div class="capability-icon">🤖</div>
+            <h3 class="capability-title">Autonomous AI Systems</h3>
+            <p class="capability-text">
+              Machine-readable OpenAPI schemas and native Model Context Protocol (MCP) compatibility. AI agents can query and invoke endpoints seamlessly.
+            </p>
+          </div>
+
+          <div class="capability-card">
+            <div class="capability-icon">🚀</div>
+            <h3 class="capability-title">Startups & Rapid MVPs</h3>
+            <p class="capability-text">
+              Production-ready building blocks: payments, geodata, weather radars, and LLMs. Ship in hours instead of weeks.
+            </p>
+          </div>
+        </div>
+
+        <!-- Interactive Code Playground / Terminal -->
+        <div class="text-center" style="max-width: 600px; margin: 60px auto 24px;">
+          <h2 style="font-size: clamp(1.6rem, 2.8vw, 2rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px; color: var(--text-primary);">
+            Integration Preview
+          </h2>
+          <p style="color: var(--text-secondary); font-size: 0.9375rem;">
+            Standardized calls for any API in the catalog.
+          </p>
+        </div>
+
+        <div class="code-playground">
+          <div class="code-playground-header">
+            <div class="code-window-dots">
+              <span class="code-dot"></span>
+              <span class="code-dot"></span>
+              <span class="code-dot"></span>
+            </div>
+            <div class="code-tabs" id="codeTabs">
+              <button class="code-tab-btn active" data-lang="js">JavaScript</button>
+              <button class="code-tab-btn" data-lang="py">Python</button>
+              <button class="code-tab-btn" data-lang="curl">cURL</button>
+            </div>
+          </div>
+          <pre class="code-playground-body"><code id="codeSnippetContent">// Initialize API request
+const response = await fetch("https://api.example.com/v1/data", {
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Accept": "application/json"
+  }
+});
+const data = await response.json();
+console.log("Result:", data);</code></pre>
+        </div>
+
+        <!-- Minimalist CTA Callout -->
+        <div class="landing-cta">
+          <h2 class="landing-cta-title">
+            Ready to accelerate your builds?
+          </h2>
+          <p class="landing-cta-subtitle">
+            Browse the full catalog, filter by requirements, and save your favorite services in one place.
+          </p>
+          <a href="catalog.html" class="btn-pill btn-pill-primary" style="padding: 12px 32px; font-size: 1rem;">
+            Open API Catalog &rarr;
+          </a>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="container footer-content">
-      <div class="flex" style="align-items: center; gap: 8px;">
-        <div class="nav-brand-logo" style="width: 26px; height: 26px; font-size: 0.8rem;">&lt;/&gt;</div>
-        <strong>API Library</strong>
-        <span class="text-muted text-sm">— Каталог сторонних API для разработчиков</span>
-      </div>
-      <div class="text-muted text-sm">
-        Чистый стек: HTML5 · CSS3 · Vanilla JS (ES6+) · Firebase
-      </div>
-    </div>
-  </footer>
+  <!-- Clean Borderless Footer -->
+  <footer class="footer"></footer>
 
   <!-- Script Initialization -->
   <script type="module">
     import { initTheme } from "./js/theme.js";
     import { renderNavbar } from "./js/components/navbar.js";
     import { initModals } from "./js/components/modal.js";
-    import { toast } from "./js/components/toast.js";
-    import { FilterManager, CATEGORIES } from "./js/filters.js";
-    import { subscribeToApis, fetchNextPageApis } from "./js/api.js";
-    import { searchApis, debounce } from "./js/search.js";
-    import { createApiCardElement, createSkeletonCardElement } from "./js/components/apiCard.js";
-    import { toggleFavorite } from "./js/profile.js";
-    import { onAuthChange } from "./js/auth.js";
-    import { db } from "./js/firebase.js";
-    import { initAntigravityCanvas } from "./js/antigravityCanvas.js";
-
-    // Setup Theme, Navbar, Modals & Interactive Particle Canvas
     initTheme();
-    renderNavbar("catalog");
+    renderNavbar("home");
     initModals();
-    initAntigravityCanvas("antigravityCanvas");
 
-    const apiGrid = document.getElementById("apiGrid");
-    const catalogCount = document.getElementById("catalogCount");
-    const btnLoadMore = document.getElementById("btnLoadMore");
-    const searchInput = document.getElementById("mainSearchInput");
-    const searchClearBtn = document.getElementById("searchClearBtn");
-    const categoriesContainer = document.getElementById("categories");
+    // Interactive Code Playground Tabs
+    const snippets = {
+      js: `// JavaScript (Fetch API)
+const response = await fetch("https://api.example.com/v1/data", {
+  method: "GET",
+  headers: {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Accept": "application/json"
+  }
+});
+const data = await response.json();
+console.log("Data received:", data);`,
 
-    let activeUser = null;
-    let currentLastDoc = null;
-    let unsubscribeRealtime = null;
-    let isSearchMode = false;
-    let displayedApis = [];
+      py: `# Python (requests)
+import requests
 
-    // Track user state for favorites
-    onAuthChange((user) => {
-      activeUser = user;
-    });
+headers = {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Accept": "application/json"
+}
+response = requests.get("https://api.example.com/v1/data", headers=headers)
+data = response.json()
+print("Data received:", data)`,
 
-    // Render category chips
-    function renderCategoryChips(activeCat) {
-      categoriesContainer.innerHTML = CATEGORIES.map((cat) => `
-        <button class="category-chip ${cat === activeCat ? "active" : ""}" data-category="${cat}">
-          ${cat === "All" ? "Все категории" : cat}
-        </button>
-      `).join("");
+      curl: `# cURL Terminal
+curl -X GET "https://api.example.com/v1/data" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Accept: application/json"`
+    };
 
-      categoriesContainer.querySelectorAll(".category-chip").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const selected = btn.dataset.category;
-          filterManager.setCategory(selected);
-          renderCategoryChips(selected);
-        });
-      });
-    }
+    const codeContent = document.getElementById("codeSnippetContent");
+    const codeTabs = document.querySelectorAll("#codeTabs .code-tab-btn");
 
-    // Show loading skeletons
-    function showSkeletons(count = 6) {
-      apiGrid.innerHTML = "";
-      for (let i = 0; i < count; i++) {
-        apiGrid.appendChild(createSkeletonCardElement());
-      }
-    }
-
-    // Bind favorite clicks
-    function attachCardEvents(container) {
-      container.querySelectorAll("[data-favorite-btn]").forEach((btn) => {
-        btn.addEventListener("click", async (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          const apiId = btn.dataset.favoriteBtn;
-          if (!activeUser) {
-            toast.warning("Пожалуйста, войдите, чтобы сохранить API в избранное");
-            return;
-          }
-          try {
-            const isFav = await toggleFavorite(apiId);
-            btn.classList.toggle("active", isFav);
-            btn.textContent = isFav ? "★" : "☆";
-            btn.title = isFav ? "Удалить из избранного" : "Добавить в избранное";
-            toast.success(isFav ? "Добавлено в избранное" : "Удалено из избранного");
-          } catch (err) {
-            toast.error("Ошибка: " + err.message);
-          }
-        });
-      });
-    }
-
-    // Render APIs list to grid
-    function renderApis(apis, append = false) {
-      if (!append) {
-        apiGrid.innerHTML = "";
-        displayedApis = apis;
-      } else {
-        displayedApis = displayedApis.concat(apis);
-      }
-
-      if (displayedApis.length === 0) {
-        apiGrid.innerHTML = `
-          <div class="empty-state" style="grid-column: 1 / -1;">
-            <div class="empty-state-icon">🔍</div>
-            <h3 class="empty-state-title">Ничего не найдено</h3>
-            <p class="empty-state-text">Попробуйте изменить поисковый запрос или сбросить фильтры каталога.</p>
-            <button class="btn btn-secondary btn-sm" id="btnResetFilters">Сбросить все фильтры</button>
-          </div>
-        `;
-        const resetBtn = document.getElementById("btnResetFilters");
-        if (resetBtn) {
-          resetBtn.addEventListener("click", () => {
-            filterManager.reset();
-            syncFilterInputs();
-            renderCategoryChips("All");
-          });
+    codeTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        codeTabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        const lang = tab.dataset.lang;
+        if (snippets[lang] && codeContent) {
+          codeContent.textContent = snippets[lang];
         }
-        catalogCount.textContent = "Найдено: 0 API";
-        btnLoadMore.style.display = "none";
-        return;
-      }
-
-      catalogCount.textContent = `Отображается: ${displayedApis.length} API`;
-
-      if (!append) {
-        apis.forEach((api) => {
-          const card = createApiCardElement(api, false);
-          apiGrid.appendChild(card);
-        });
-      } else {
-        apis.forEach((api) => {
-          const card = createApiCardElement(api, false);
-          apiGrid.appendChild(card);
-        });
-      }
-
-      attachCardEvents(apiGrid);
-    }
-
-    // Apply Real-time Subscription to Firestore Catalog
-    function applyQuery() {
-      const state = filterManager.getState();
-
-      if (state.searchQuery && state.searchQuery.trim().length >= 2) {
-        // Search Mode
-        isSearchMode = true;
-        btnLoadMore.style.display = "none";
-        if (unsubscribeRealtime) unsubscribeRealtime();
-        showSkeletons(4);
-
-        searchApis(state.searchQuery).then((results) => {
-          // Client-side filter matching other selected controls if any
-          let filtered = results;
-          if (state.category !== "All") filtered = filtered.filter(a => a.category === state.category);
-          if (state.authentication !== "All") filtered = filtered.filter(a => a.authentication === state.authentication);
-          if (state.format !== "All") filtered = filtered.filter(a => a.format === state.format);
-          if (state.pricing === "Free") filtered = filtered.filter(a => a.freeTier === true);
-          if (state.pricing === "Paid") filtered = filtered.filter(a => a.freeTier === false);
-          renderApis(filtered);
-        });
-        return;
-      }
-
-      // Realtime OnSnapshot Mode
-      isSearchMode = false;
-      showSkeletons(6);
-
-      if (unsubscribeRealtime) unsubscribeRealtime();
-
-      unsubscribeRealtime = subscribeToApis(
-        {
-          category: state.category,
-          authentication: state.authentication,
-          pricing: state.pricing,
-          format: state.format,
-          sortBy: state.sortBy,
-          sortOrder: state.sortBy === "name" ? "asc" : "desc",
-          pageSize: 12
-        },
-        (apis, lastDoc, error) => {
-          if (error) {
-            console.warn("Realtime subscription notice:", error.message);
-            catalogCount.textContent = "Готов к работе с Firebase";
-            renderApis([]);
-            return;
-          }
-
-          currentLastDoc = lastDoc;
-          renderApis(apis);
-
-          // Show Load More if we received a full page of 12 items
-          if (apis.length >= 12 && currentLastDoc) {
-            btnLoadMore.style.display = "inline-flex";
-          } else {
-            btnLoadMore.style.display = "none";
-          }
-        }
-      );
-    }
-
-    // Pagination: Load More button
-    btnLoadMore.addEventListener("click", async () => {
-      if (!currentLastDoc || isSearchMode) return;
-
-      btnLoadMore.disabled = true;
-      btnLoadMore.textContent = "Загрузка...";
-
-      const state = filterManager.getState();
-      try {
-        const { apis, lastDoc } = await fetchNextPageApis(
-          {
-            category: state.category,
-            authentication: state.authentication,
-            pricing: state.pricing,
-            format: state.format,
-            sortBy: state.sortBy,
-            sortOrder: state.sortBy === "name" ? "asc" : "desc",
-            pageSize: 12
-          },
-          currentLastDoc
-        );
-
-        currentLastDoc = lastDoc;
-        renderApis(apis, true);
-
-        if (!lastDoc || apis.length < 12) {
-          btnLoadMore.style.display = "none";
-        }
-      } catch (err) {
-        toast.error("Ошибка при подгрузке данных: " + err.message);
-      } finally {
-        btnLoadMore.disabled = false;
-        btnLoadMore.textContent = "Показать ещё";
-      }
-    });
-
-    // Initialize Filter Manager
-    const filterManager = new FilterManager(() => {
-      applyQuery();
-    });
-
-    function syncFilterInputs() {
-      const state = filterManager.getState();
-      document.getElementById("authFilter").value = state.authentication;
-      document.getElementById("pricingFilter").value = state.pricing;
-      document.getElementById("formatFilter").value = state.format;
-      document.getElementById("sortFilter").value = state.sortBy;
-      searchInput.value = state.searchQuery || "";
-      searchClearBtn.classList.toggle("visible", Boolean(state.searchQuery));
-    }
-
-    // Attach Filter Select Events
-    document.getElementById("authFilter").addEventListener("change", (e) => filterManager.setFilter("authentication", e.target.value));
-    document.getElementById("pricingFilter").addEventListener("change", (e) => filterManager.setFilter("pricing", e.target.value));
-    document.getElementById("formatFilter").addEventListener("change", (e) => filterManager.setFilter("format", e.target.value));
-    document.getElementById("sortFilter").addEventListener("change", (e) => filterManager.setFilter("sortBy", e.target.value));
-
-    // Debounced Search Input
-    const debouncedSearch = debounce((query) => {
-      filterManager.setSearchQuery(query);
-    }, 350);
-
-    searchInput.addEventListener("input", (e) => {
-      const val = e.target.value;
-      searchClearBtn.classList.toggle("visible", Boolean(val));
-      debouncedSearch(val);
-    });
-
-    searchClearBtn.addEventListener("click", () => {
-      searchInput.value = "";
-      searchClearBtn.classList.remove("visible");
-      filterManager.setSearchQuery("");
-      searchInput.focus();
-    });
-
-    // Global Keyboard Shortcut: Ctrl+K or Cmd+K or "/" to focus search
-    document.addEventListener("keydown", (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        searchInput.focus();
-        searchInput.select();
-      } else if (e.key === "/" && document.activeElement !== searchInput && !["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) {
-        e.preventDefault();
-        searchInput.focus();
-        searchInput.select();
-      }
-    });
-
-    // Hero explore button click
-    const btnHeroExplore = document.getElementById("btnHeroExplore");
-    if (btnHeroExplore) {
-      btnHeroExplore.addEventListener("click", () => {
-        searchInput.focus();
-        searchInput.select();
       });
-    }
-
-    // Initial render
-    renderCategoryChips(filterManager.getState().category);
-    syncFilterInputs();
-    applyQuery();
+    });
   </script>
 </body>
 </html>
