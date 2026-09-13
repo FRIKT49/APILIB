@@ -29,6 +29,14 @@ export function createApiCardElement(api, isFavorite = false) {
     pricingBadge = `<span class="badge badge-neutral">Freemium</span>`;
   }
 
+  // Source badge: APIs.guru or Verified
+  let sourceBadge = "";
+  if (api.source === "apis.guru" || api.swaggerUrl) {
+    sourceBadge = `<span class="badge" style="font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; background: rgba(99, 102, 241, 0.12); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.28);" title="Импортировано из глобального каталога APIs.guru (OpenAPI)">🌐 APIs.guru</span>`;
+  } else {
+    sourceBadge = `<span class="badge" style="font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.28);" title="Проверенное официальное API платформы">⚡ Verified</span>`;
+  }
+
   // Tags HTML (first 3)
   const tagsHtml = (api.tags || [])
     .slice(0, 3)
@@ -46,7 +54,10 @@ export function createApiCardElement(api, isFavorite = false) {
         ${logoHtml}
         <div class="api-title-group">
           <h3 class="api-card-title" title="${escapeHtml(api.name)}">${escapeHtml(api.name)}</h3>
-          <div class="api-card-category"><span class="status-dot"></span>${escapeHtml(api.category || "General")}</div>
+          <div class="api-card-category" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            <span class="status-dot"></span><span>${escapeHtml(api.category || "General")}</span>
+            ${sourceBadge}
+          </div>
         </div>
       </div>
       <button class="btn-favorite-card ${isFavorite ? "active" : ""}" 

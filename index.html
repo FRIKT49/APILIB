@@ -10,6 +10,16 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/pages.css">
   <link rel="stylesheet" href="css/responsive.css">
+  <script>
+    // Ensure initial page load always stays at the top (scrollY = 0)
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+    if (window.location.hash) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  </script>
 </head>
 <body>
   <!-- Interactive Background Dots Canvas (Scoped to 100vh initial screen) -->
@@ -48,7 +58,7 @@
     </section>
 
     <!-- Platform Stats & Information Section -->
-    <section class="section" id="about" style="padding-top: 50px; position: relative; z-index: 2;">
+    <section class="section" id="about" style="padding-top: 64px; position: relative; z-index: 2;">
       <div class="container">
         <!-- Section Header / Mission Statement -->
         <div class="text-center" style="max-width: 740px; margin: 0 auto 48px;">
@@ -228,6 +238,165 @@ curl -X GET "https://api.example.com/v1/data" \\
         }
       });
     });
+
+    // Welcome Hero Auto-Scroll Transition Controller
+    const aboutSection = document.getElementById("about");
+    let isTransitioning = false;
+    let transitionTimer = null;
+
+    const getAboutScrollTop = () => {
+      if (!aboutSection) return window.innerHeight;
+      return aboutSection.offsetTop;
+    };
+
+    const scrollToAbout = () => {
+      if (isTransitioning) return;
+      isTransitioning = true;
+      window.scrollTo({
+        top: getAboutScrollTop(),
+        behavior: "smooth"
+      });
+      clearTimeout(transitionTimer);
+      transitionTimer = setTimeout(() => {
+        isTransitioning = false;
+      }, 850);
+    };
+
+    const scrollToTop = () => {
+      if (isTransitioning) return;
+      isTransitioning = true;
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+      clearTimeout(transitionTimer);
+      transitionTimer = setTimeout(() => {
+        isTransitioning = false;
+      }, 850);
+    };
+
+    // Unlock on scroll end
+    window.addEventListener("scrollend", () => {
+      isTransitioning = false;
+      clearTimeout(transitionTimer);
+    });
+
+    // 1. Mouse Wheel down on hero -> scroll down until hero is completely hidden
+    window.addEventListener(
+      "wheel",
+      (e) => {
+        const targetY = getAboutScrollTop();
+        const currentY = window.scrollY;
+
+        // If user is viewing the welcome hero screen and scrolls down:
+        if (currentY < targetY - 30 && e.deltaY > 0) {
+          e.preventDefault();
+          scrollToAbout();
+          return;
+        }
+
+        // If user is at the top of the about section and scrolls up:
+        if (currentY >= targetY - 20 && currentY <= targetY + 40 && e.deltaY < 0) {
+          e.preventDefault();
+          scrollToTop();
+          return;
+        }
+
+        // If currently in the middle of transition, suppress extraneous wheel interrupts
+        if (isTransitioning) {
+          e.preventDefault();
+        }
+      },
+      { passive: false }
+    );
+
+    // 2. Touch gestures (swipe up while on hero -> scroll down to about; swipe down at top of about -> scroll to top)
+    let touchStartY = 0;
+    window.addEventListener(
+      "touchstart",
+      (e) => {
+        if (e.touches && e.touches.length > 0) {
+          touchStartY = e.touches[0].clientY;
+        }
+      },
+      { passive: true }
+    );
+
+    window.addEventListener(
+      "touchmove",
+      (e) => {
+        if (isTransitioning || !e.touches || e.touches.length === 0) return;
+        const currentY = window.scrollY;
+        const targetY = getAboutScrollTop();
+        const touchY = e.touches[0].clientY;
+        const deltaTouch = touchStartY - touchY; // positive = swipe up = scroll down
+
+        if (Math.abs(deltaTouch) > 25) {
+          if (deltaTouch > 0 && currentY < targetY - 30) {
+            scrollToAbout();
+          } else if (deltaTouch < 0 && currentY >= targetY - 20 && currentY <= targetY + 40) {
+            scrollToTop();
+          }
+        }
+      },
+      { passive: true }
+    );
+
+    // 3. Keyboard navigation (ArrowDown, PageDown, Space while on hero)
+    window.addEventListener("keydown", (e) => {
+      const currentY = window.scrollY;
+      const targetY = getAboutScrollTop();
+
+      if (
+        currentY < targetY - 30 &&
+        (e.key === "ArrowDown" || e.key === "PageDown" || (e.key === " " && !e.target.matches("input, textarea")))
+      ) {
+        e.preventDefault();
+        scrollToAbout();
+      } else if (
+        currentY >= targetY - 20 &&
+        currentY <= targetY + 40 &&
+        (e.key === "ArrowUp" || e.key === "PageUp")
+      ) {
+        e.preventDefault();
+        scrollToTop();
+      }
+    });
+
+    // 4. Smooth scroll for in-page anchors without modifying URL hash
+    document.querySelectorAll('a[href="#about"]').forEach((anchor) => {
+      anchor.addEventListener("click", (e) => {
+        e.preventDefault();
+        scrollToAbout();
+      });
+    });
+
+    // 5. Settle handler if scroll stopped halfway in the hero region (e.g. scrollbar dragging)
+    let settleTimer = null;
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (isTransitioning) return;
+        const currentY = window.scrollY;
+        const targetY = getAboutScrollTop();
+
+        clearTimeout(settleTimer);
+        if (currentY > 30 && currentY < targetY - 30) {
+          settleTimer = setTimeout(() => {
+            if (isTransitioning) return;
+            const curY = window.scrollY;
+            if (curY > 30 && curY < targetY - 30) {
+              if (curY > targetY * 0.45) {
+                scrollToAbout();
+              } else {
+                scrollToTop();
+              }
+            }
+          }, 180);
+        }
+      },
+      { passive: true }
+    );
   </script>
 </body>
 </html>

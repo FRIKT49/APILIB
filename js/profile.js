@@ -15,7 +15,7 @@ import {
   serverTimestamp
 } from "./firebase.js";
 import { getUserReviews, deleteReview } from "./reviews.js";
-import { updateUserDisplayName } from "./auth.js";
+import { updateUserDisplayName, isSuperAdminEmail } from "./auth.js";
 import { createApiCardElement } from "./components/apiCard.js";
 import { toast } from "./components/toast.js";
 import { showConfirmDialog } from "./components/modal.js";
@@ -104,14 +104,21 @@ export async function loadProfileData(user, profile) {
   const displayName = profile?.displayName || user.displayName || user.email.split("@")[0];
   const initial = (displayName[0] || "U").toUpperCase();
 
+  const isAdmin = profile?.role === "admin" || user?.role === "admin" || isSuperAdminEmail(user.email);
+
   if (nameDisplay) nameDisplay.textContent = displayName;
   if (emailDisplay) emailDisplay.textContent = user.email;
   if (roleDisplay) {
-    roleDisplay.textContent = profile?.role === "admin" ? "Администратор" : "Пользователь";
-    roleDisplay.className = `badge ${profile?.role === "admin" ? "badge-primary" : "badge-neutral"}`;
+    roleDisplay.textContent = isAdmin ? "Администратор" : "Пользователь";
+    roleDisplay.className = `badge ${isAdmin ? "badge-primary" : "badge-neutral"}`;
   }
   if (avatarElem) avatarElem.textContent = initial;
   if (nameInput) nameInput.value = displayName;
+
+  const btnAdmin = document.getElementById("btnAdminPanelProfile");
+  if (btnAdmin) {
+    btnAdmin.style.display = isAdmin ? "inline-flex" : "none";
+  }
 
   if (dateDisplay && profile?.createdAt) {
     const d = profile.createdAt.toDate ? profile.createdAt.toDate() : new Date(profile.createdAt);

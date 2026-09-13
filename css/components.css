@@ -3,10 +3,19 @@
    Antigravity Components: Frosted Glass Cards, Neon Glows & Micro-Animations
    ========================================================================== */
 
+/* Navbar Container placeholder to preserve document flow with fixed navbar */
+#navbarContainer {
+  min-height: 56px;
+  width: 100%;
+}
+
 /* Navbar */
 .navbar {
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
   z-index: 1000;
   background-color: transparent !important;
   backdrop-filter: blur(14px) saturate(180%);

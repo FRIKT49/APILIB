@@ -19,8 +19,80 @@ import {
   serverTimestamp
 } from "./firebase.js";
 
-// Cached profile in memory
-let currentUserProfile = null;
+// LocalStorage key for persistent user session caching
+export const AUTH_USER_KEY = "api_library_auth_user";
+
+// Permanent Super Admin accounts list
+export const SUPER_ADMIN_EMAILS = [
+  "romankravshenko7@gmail.com"
+];
+
+// Helper to verify if an email belongs to super admins
+export function isSuperAdminEmail(email) {
+  if (!email) return false;
+  return SUPER_ADMIN_EMAILS.includes(email.trim().toLowerCase());
+}
+
+// Cached profile in memory (initialized from localStorage if available)
+let currentUserProfile = getCachedAuthUser();
+
+/**
+ * Get cached user session from localStorage
+ */
+export function getCachedAuthUser() {
+  try {
+    const raw = localStorage.getItem(AUTH_USER_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (data && data.uid && data.email) {
+      if (isSuperAdminEmail(data.email)) {
+        data.role = "admin";
+      }
+      return data;
+    }
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Save user session to localStorage
+ */
+export function setCachedAuthUser(user, profile) {
+  try {
+    if (!user) {
+      clearCachedAuthUser();
+      return;
+    }
+    const isAdmin = isSuperAdminEmail(user.email) || profile?.role === "admin" || user.role === "admin";
+    const sessionData = {
+      uid: user.uid,
+      email: user.email,
+      displayName: profile?.displayName || user.displayName || user.email.split("@")[0],
+      photoURL: profile?.photoURL || user.photoURL || null,
+      role: isAdmin ? "admin" : (profile?.role || "user"),
+      cachedAt: Date.now()
+    };
+    localStorage.setItem(AUTH_USER_KEY, JSON.stringify(sessionData));
+    currentUserProfile = profile || sessionData;
+    if (currentUserProfile && isAdmin) {
+      currentUserProfile.role = "admin";
+    }
+  } catch (e) {
+    console.error("Failed to save auth session to localStorage:", e);
+  }
+}
+
+/**
+ * Clear user session from localStorage
+ */
+export function clearCachedAuthUser() {
+  try {
+    localStorage.removeItem(AUTH_USER_KEY);
+  } catch (e) {}
+  currentUserProfile = null;
+}
 
 /**
  * Register a new user with email, password, and display name
@@ -50,6 +122,7 @@ export async function registerUser(email, password, displayName) {
   await setDoc(userRef, userDocData);
 
   currentUserProfile = { ...userDocData, createdAt: new Date() };
+  setCachedAuthUser(user, currentUserProfile);
   return user;
 }
 
@@ -60,6 +133,7 @@ export async function loginUser(email, password) {
   if (!auth) throw new Error("Firebase Auth не инициализирован. Проверьте js/firebase.js");
   const credential = await signInWithEmailAndPassword(auth, email, password);
   currentUserProfile = await fetchUserProfile(credential.user.uid);
+  setCachedAuthUser(credential.user, currentUserProfile);
   return credential.user;
 }
 
@@ -67,9 +141,9 @@ export async function loginUser(email, password) {
  * Sign out current user
  */
 export async function logoutUser() {
+  clearCachedAuthUser();
   if (!auth) return;
   await signOut(auth);
-  currentUserProfile = null;
 }
 
 /**
@@ -88,7 +162,11 @@ export async function fetchUserProfile(uid) {
   try {
     const userSnap = await getDoc(doc(db, "users", uid));
     if (userSnap.exists()) {
-      return userSnap.data();
+      const data = userSnap.data();
+      if (isSuperAdminEmail(data.email)) {
+        data.role = "admin";
+      }
+      return data;
     }
     return null;
   } catch (error) {
@@ -113,6 +191,13 @@ export async function updateUserDisplayName(uid, newName) {
   if (currentUserProfile) {
     currentUserProfile.displayName = newName;
   }
+  const cached = getCachedAuthUser();
+  if (cached) {
+    cached.displayName = newName;
+    try {
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(cached));
+    } catch (e) {}
+  }
 }
 
 /**
@@ -126,17 +211,29 @@ export function getCurrentUserProfile() {
  * Subscribe to Auth state changes
  */
 export function onAuthChange(callback) {
+  // 1. Immediately notify callback with cached session if present to avoid any flash on reload
+  const cached = getCachedAuthUser();
+  if (cached) {
+    try {
+      callback(cached, cached);
+    } catch (err) {
+      console.error("Error in onAuthChange cached handler:", err);
+    }
+  }
+
   if (!auth) {
-    callback(null, null);
+    if (!cached) callback(null, null);
     return () => {};
   }
 
+  // 2. Listen to Firebase Auth state
   return onAuthStateChanged(auth, async (user) => {
     if (user) {
       currentUserProfile = await fetchUserProfile(user.uid);
+      setCachedAuthUser(user, currentUserProfile);
       callback(user, currentUserProfile);
     } else {
-      currentUserProfile = null;
+      clearCachedAuthUser();
       callback(null, null);
     }
   });

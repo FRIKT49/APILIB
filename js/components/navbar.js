@@ -3,7 +3,7 @@
  * Navbar Component with Auth State, Theme Switcher & Mobile Menu
  */
 
-import { onAuthChange, logoutUser } from "../auth.js";
+import { onAuthChange, logoutUser, getCachedAuthUser, isSuperAdminEmail } from "../auth.js";
 import { isConfigPlaceholder } from "../firebase.js";
 import { toast } from "./toast.js";
 import { initBgDotsCanvas } from "../bgDotsCanvas.js";
@@ -18,6 +18,10 @@ export function renderNavbar(activePage = "") {
 
   const currentTheme = localStorage.getItem("api_library_theme") || "dark";
   const themeIcon = currentTheme === "dark" ? "☀" : "☾";
+
+  // Check if authenticated user session is already cached in localStorage
+  const cachedUser = getCachedAuthUser();
+  const isCachedAdmin = cachedUser && (cachedUser.role === "admin" || isSuperAdminEmail(cachedUser.email));
 
   navContainer.innerHTML = `
     <nav class="navbar" id="mainNavbar">
@@ -119,7 +123,7 @@ export function renderNavbar(activePage = "") {
           </li>
 
           <li>
-            <a href="index.html#about" class="nav-link">
+            <a href="index.html#about" class="nav-link" id="navAboutLink">
               About
             </a>
           </li>
@@ -128,7 +132,7 @@ export function renderNavbar(activePage = "") {
               Documentation
             </a>
           </li>
-          <li id="adminNavLink" style="display: none;">
+          <li id="adminNavLink" style="display: ${isCachedAdmin ? "block" : "none"};">
             <a href="admin.html" class="nav-link ${activePage === "admin" ? "active" : ""}">
               Admin
             </a>
@@ -137,12 +141,9 @@ export function renderNavbar(activePage = "") {
 
         <!-- Minimalist Actions -->
         <div class="nav-actions">
-          <!-- Auth Dynamic Area -->
+          <!-- Auth Dynamic Area (instant initial hydration from localStorage) -->
           <div id="navAuthArea">
-            <a href="login.html" class="nav-link" style="padding: 6px 14px; font-weight: 500;">Sign in</a>
-            <a href="catalog.html" class="btn-pill btn-pill-primary" style="padding: 7px 18px; font-size: 0.875rem;">
-              Explore APIs &rarr;
-            </a>
+            ${getDesktopAuthMarkup(cachedUser, cachedUser)}
           </div>
 
           <!-- Mobile Hamburger -->
@@ -172,21 +173,27 @@ export function renderNavbar(activePage = "") {
         <ul class="mobile-nav-links">
           <li><a href="catalog.html" class="nav-link">Catalog</a></li>
           <li><a href="catalog.html#categories" class="nav-link">Categories</a></li>
-          <li><a href="index.html#about" class="nav-link">About</a></li>
+          <li><a href="index.html#about" class="nav-link" id="mobileAboutLink">About</a></li>
           <li><a href="https://developer.mozilla.org/en-US/docs/Web/API" target="_blank" rel="noopener" class="nav-link">Documentation</a></li>
-          <li id="mobileAdminLink" style="display: none;"><a href="admin.html" class="nav-link">Admin</a></li>
-          <li id="mobileProfileLink" style="display: none;"><a href="profile.html" class="nav-link">Profile</a></li>
+          <li id="mobileAdminLink" style="display: ${isCachedAdmin ? "block" : "none"};"><a href="admin.html" class="nav-link">Admin</a></li>
+          <li id="mobileProfileLink" style="display: ${cachedUser ? "block" : "none"};"><a href="profile.html" class="nav-link">Profile</a></li>
         </ul>
 
         <div class="mobile-nav-actions" id="mobileAuthArea">
-          <a href="login.html" class="btn btn-primary">Sign in</a>
+          ${getMobileAuthMarkup(cachedUser, cachedUser)}
         </div>
       </div>
     </div>
   `;
 
+  // Attach auth button/dropdown event listeners immediately for frame 0 interaction
+  bindAuthEvents();
+
   // Watch scroll to add/remove subtle glass backdrop when scrolled
   const mainNavbar = document.getElementById("mainNavbar");
+  if (mainNavbar && navContainer) {
+    navContainer.style.minHeight = `${mainNavbar.offsetHeight || 56}px`;
+  }
   const onScroll = () => {
     if (window.scrollY > 15) {
       mainNavbar?.classList.add("scrolled");
@@ -381,34 +388,44 @@ export function renderNavbar(activePage = "") {
     });
   }
 
+  // Smooth scroll for About links if #about exists on page (without mutating hash)
+  [document.getElementById("navAboutLink"), document.getElementById("mobileAboutLink")].forEach((link) => {
+    if (!link) return;
+    link.addEventListener("click", (e) => {
+      const aboutSec = document.getElementById("about");
+      if (aboutSec) {
+        e.preventDefault();
+        overlay?.classList.remove("open");
+        aboutSec.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  });
+
   // Subscribe to Auth State
   onAuthChange((user, profile) => {
     updateNavAuthState(user, profile);
   });
+
+  // Keep cross-tab auth state in sync
+  if (!window._storageAuthListenerBound) {
+    window._storageAuthListenerBound = true;
+    window.addEventListener("storage", (e) => {
+      if (e.key === "api_library_auth_user") {
+        const u = getCachedAuthUser();
+        updateNavAuthState(u, u);
+      }
+    });
+  }
 }
 
-function updateNavAuthState(user, profile) {
-  window.__updateNavAuthState = updateNavAuthState;
-  const desktopAuth = document.getElementById("navAuthArea");
-  const mobileAuth = document.getElementById("mobileAuthArea");
-  const adminNav = document.getElementById("adminNavLink");
-  const mobileAdmin = document.getElementById("mobileAdminLink");
-  const mobileProfile = document.getElementById("mobileProfileLink");
-
-  const isAdmin = profile && profile.role === "admin";
-
-  if (adminNav) adminNav.style.display = isAdmin ? "block" : "none";
-  if (mobileAdmin) mobileAdmin.style.display = isAdmin ? "block" : "none";
-  if (mobileProfile) mobileProfile.style.display = user ? "block" : "none";
-
-  if (!desktopAuth) return;
-
+function getDesktopAuthMarkup(user, profile) {
   if (user) {
     const displayName = profile?.displayName || user.displayName || user.email.split("@")[0];
     const initial = (displayName[0] || "U").toUpperCase();
     const photoURL = profile?.photoURL || user.photoURL;
+    const isAdmin = (profile && profile.role === "admin") || (user && user.role === "admin") || isSuperAdminEmail(user?.email);
 
-    desktopAuth.innerHTML = `
+    return `
       <div class="user-menu-wrapper">
         <button class="user-avatar-btn" id="userMenuToggle" aria-haspopup="true" aria-expanded="false" title="${escapeHtml(displayName)}">
           ${
@@ -438,67 +455,103 @@ function updateNavAuthState(user, profile) {
         </div>
       </div>
     `;
-
-    // Dropdown toggle
-    const toggleBtn = document.getElementById("userMenuToggle");
-    const dropdown = document.getElementById("userDropdown");
-    if (toggleBtn && dropdown) {
-      toggleBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const isOpen = dropdown.classList.toggle("show");
-        toggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
-      });
-
-      document.addEventListener("click", () => {
-        dropdown.classList.remove("show");
-        toggleBtn.setAttribute("aria-expanded", "false");
-      });
-    }
-
-    // Logout
-    const logoutBtn = document.getElementById("btnLogout");
-    if (logoutBtn) {
-      logoutBtn.addEventListener("click", async () => {
-        try {
-          await logoutUser();
-          toast.info("You have signed out");
-          window.location.reload();
-        } catch (err) {
-          toast.error("Logout error: " + err.message);
-        }
-      });
-    }
-
-    // Mobile auth area
-    if (mobileAuth) {
-      mobileAuth.innerHTML = `
-        <div style="padding: 10px 0; border-top: 1px solid var(--border-color); margin-top: 10px;">
-          <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 2px;">${escapeHtml(displayName)}</div>
-          <div style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 12px;">${escapeHtml(user.email)}</div>
-          <button class="btn btn-secondary btn-sm" id="mobileBtnLogout" style="width: 100%;">Log out</button>
-        </div>
-      `;
-      const mobLogoutBtn = document.getElementById("mobileBtnLogout");
-      if (mobLogoutBtn) {
-        mobLogoutBtn.addEventListener("click", async () => {
-          await logoutUser();
-          window.location.reload();
-        });
-      }
-    }
   } else {
-    // Unauthenticated
-    desktopAuth.innerHTML = `
+    return `
       <a href="login.html" class="btn-pill btn-pill-secondary" style="padding: 7px 16px; font-size: 0.85rem; margin-right: 6px;">Sign in</a>
       <a href="register.html" class="btn-pill btn-pill-primary" style="padding: 7px 18px; font-size: 0.85rem;">Get started</a>
     `;
-    if (mobileAuth) {
-      mobileAuth.innerHTML = `
-        <a href="login.html" class="btn-pill btn-pill-secondary" style="width: 100%; justify-content: center; margin-bottom: 8px;">Sign in</a>
-        <a href="register.html" class="btn-pill btn-pill-primary" style="width: 100%; justify-content: center;">Get started</a>
-      `;
+  }
+}
+
+function getMobileAuthMarkup(user, profile) {
+  if (user) {
+    const displayName = profile?.displayName || user.displayName || user.email.split("@")[0];
+    return `
+      <div style="padding: 10px 0; border-top: 1px solid var(--border-color); margin-top: 10px;">
+        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 2px;">${escapeHtml(displayName)}</div>
+        <div style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 12px;">${escapeHtml(user.email)}</div>
+        <button class="btn btn-secondary btn-sm" id="mobileBtnLogout" style="width: 100%;">Log out</button>
+      </div>
+    `;
+  } else {
+    return `
+      <a href="login.html" class="btn-pill btn-pill-secondary" style="width: 100%; justify-content: center; margin-bottom: 8px;">Sign in</a>
+      <a href="register.html" class="btn-pill btn-pill-primary" style="width: 100%; justify-content: center;">Get started</a>
+    `;
+  }
+}
+
+function bindAuthEvents() {
+  const toggleBtn = document.getElementById("userMenuToggle");
+  const dropdown = document.getElementById("userDropdown");
+  if (toggleBtn && dropdown) {
+    toggleBtn.onclick = (e) => {
+      e.stopPropagation();
+      const isOpen = dropdown.classList.toggle("show");
+      toggleBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    };
+
+    if (!window._authDropdownDocClickBound) {
+      window._authDropdownDocClickBound = true;
+      document.addEventListener("click", () => {
+        const dd = document.getElementById("userDropdown");
+        const btn = document.getElementById("userMenuToggle");
+        if (dd && btn) {
+          dd.classList.remove("show");
+          btn.setAttribute("aria-expanded", "false");
+        }
+      });
     }
   }
+
+  const logoutBtn = document.getElementById("btnLogout");
+  if (logoutBtn) {
+    logoutBtn.onclick = async () => {
+      try {
+        await logoutUser();
+        toast.info("You have signed out");
+        window.location.reload();
+      } catch (err) {
+        toast.error("Logout error: " + err.message);
+      }
+    };
+  }
+
+  const mobLogoutBtn = document.getElementById("mobileBtnLogout");
+  if (mobLogoutBtn) {
+    mobLogoutBtn.onclick = async () => {
+      try {
+        await logoutUser();
+        window.location.reload();
+      } catch (err) {
+        toast.error("Logout error: " + err.message);
+      }
+    };
+  }
+}
+
+function updateNavAuthState(user, profile) {
+  window.__updateNavAuthState = updateNavAuthState;
+  const desktopAuth = document.getElementById("navAuthArea");
+  const mobileAuth = document.getElementById("mobileAuthArea");
+  const adminNav = document.getElementById("adminNavLink");
+  const mobileAdmin = document.getElementById("mobileAdminLink");
+  const mobileProfile = document.getElementById("mobileProfileLink");
+
+  const isAdmin = (profile && profile.role === "admin") || (user && user.role === "admin") || isSuperAdminEmail(user?.email);
+
+  if (adminNav) adminNav.style.display = isAdmin ? "block" : "none";
+  if (mobileAdmin) mobileAdmin.style.display = isAdmin ? "block" : "none";
+  if (mobileProfile) mobileProfile.style.display = user ? "block" : "none";
+
+  if (desktopAuth) {
+    desktopAuth.innerHTML = getDesktopAuthMarkup(user, profile);
+  }
+  if (mobileAuth) {
+    mobileAuth.innerHTML = getMobileAuthMarkup(user, profile);
+  }
+
+  bindAuthEvents();
 }
 
 function escapeHtml(str) {

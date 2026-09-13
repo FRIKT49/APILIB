@@ -773,7 +773,7 @@
    Minimalist Landing Page (index.html)
    ========================================================================== */
 .landing-hero {
-  min-height: calc(100vh - 52px);
+  min-height: calc(100vh - 56px);
   display: flex;
   flex-direction: column;
   align-items: center;

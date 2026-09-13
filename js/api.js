@@ -125,6 +125,7 @@ export function subscribeToApis(filterParams, callback) {
       try {
         const params = new URLSearchParams();
         if (filterParams.category && filterParams.category !== "All") params.set("category", filterParams.category);
+        if (filterParams.source && filterParams.source !== "All") params.set("source", filterParams.source);
         if (filterParams.authentication && filterParams.authentication !== "All") params.set("auth", filterParams.authentication);
         if (filterParams.pricing && filterParams.pricing !== "All") params.set("pricing", filterParams.pricing);
         if (filterParams.format && filterParams.format !== "All") params.set("format", filterParams.format);
@@ -147,10 +148,19 @@ export function subscribeToApis(filterParams, callback) {
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const apis = [];
+        let apis = [];
         snapshot.forEach((docSnap) => {
           apis.push({ id: docSnap.id, ...docSnap.data() });
         });
+
+        if (filterParams.source && filterParams.source !== "All") {
+          if (filterParams.source === "apis.guru") {
+            apis = apis.filter(a => a.source === "apis.guru" || a.swaggerUrl);
+          } else if (filterParams.source === "verified") {
+            apis = apis.filter(a => a.source !== "apis.guru" && !a.swaggerUrl);
+          }
+        }
+
         const lastVisible = snapshot.docs[snapshot.docs.length - 1] || null;
         callback(apis, lastVisible, null);
       },
@@ -181,10 +191,18 @@ export async function fetchNextPageApis(filterParams, lastVisibleDoc) {
   const q = query(collection(db, "apis"), ...constraints);
   const snapshot = await getDocs(q);
 
-  const apis = [];
+  let apis = [];
   snapshot.forEach((docSnap) => {
     apis.push({ id: docSnap.id, ...docSnap.data() });
   });
+
+  if (filterParams.source && filterParams.source !== "All") {
+    if (filterParams.source === "apis.guru") {
+      apis = apis.filter(a => a.source === "apis.guru" || a.swaggerUrl);
+    } else if (filterParams.source === "verified") {
+      apis = apis.filter(a => a.source !== "apis.guru" && !a.swaggerUrl);
+    }
+  }
 
   const nextLastDoc = snapshot.docs[snapshot.docs.length - 1] || null;
   return { apis, lastDoc: nextLastDoc };

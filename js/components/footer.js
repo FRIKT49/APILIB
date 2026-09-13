@@ -83,4 +83,15 @@ export function renderFooter() {
       </div>
     </div>
   `;
+
+  // Smooth scroll for footer links targeting #about if on same page
+  footerElement.querySelectorAll('a[href*="#about"]').forEach((link) => {
+    link.addEventListener("click", (e) => {
+      const aboutSec = document.getElementById("about");
+      if (aboutSec) {
+        e.preventDefault();
+        aboutSec.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  });
 }

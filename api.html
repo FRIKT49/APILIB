@@ -29,9 +29,10 @@
           <div class="api-header-left">
             <div id="apiLogo" class="api-header-logo">⚡</div>
             <div>
-              <div class="flex" style="align-items: center; gap: 10px; margin-bottom: 6px;">
+              <div class="flex" style="align-items: center; gap: 10px; margin-bottom: 6px; flex-wrap: wrap;">
                 <span id="apiCategoryBadge" class="badge badge-primary">Category</span>
                 <span id="apiStatusBadge" class="badge badge-success">Active</span>
+                <span id="apiSourceBadge" class="badge" style="display: none;"></span>
               </div>
               <h1 id="apiTitle" class="api-header-title">API Name</h1>
               <div class="api-header-meta">
@@ -54,6 +55,9 @@
             </a>
             <a id="btnDocs" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
               Документация ↗
+            </a>
+            <a id="btnSwagger" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display: none; border-color: rgba(99, 102, 241, 0.4); color: var(--accent-text);">
+              📄 OpenAPI Spec ↗
             </a>
           </div>
         </div>
@@ -165,6 +169,10 @@
                     <td>Статус</td>
                     <td id="specStatus">Active</td>
                   </tr>
+                  <tr>
+                    <td>Источник</td>
+                    <td id="specSource"><span class="badge badge-outline" style="font-size: 0.75rem;">⚡ Verified</span></td>
+                  </tr>
                 </tbody>
               </table>
 
@@ -176,6 +184,9 @@
                 </a>
                 <a id="btnSpecWebsite" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="width: 100%;">
                   Официальный сайт
+                </a>
+                <a id="btnSpecSwagger" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="width: 100%; display: none; border-color: rgba(99, 102, 241, 0.4); color: var(--accent-text);">
+                  📄 OpenAPI / Swagger Спецификация ↗
                 </a>
                 <a id="btnSpecGithub" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="width: 100%; display: none;">
                   GitHub репозиторий ↗
@@ -268,6 +279,20 @@
         document.getElementById("apiStatusBadge").textContent = currentApi.status || "Active";
         document.getElementById("apiStatusBadge").className = `badge ${currentApi.status === "active" ? "badge-success" : "badge-warning"}`;
 
+        // Source badge in header
+        const sourceBadge = document.getElementById("apiSourceBadge");
+        if (sourceBadge) {
+          if (currentApi.source === "apis.guru" || currentApi.swaggerUrl) {
+            sourceBadge.textContent = "🌐 APIs.guru (OpenAPI)";
+            sourceBadge.className = "badge badge-primary";
+            sourceBadge.style.display = "inline-flex";
+          } else {
+            sourceBadge.textContent = "⚡ Verified API";
+            sourceBadge.className = "badge badge-outline";
+            sourceBadge.style.display = "inline-flex";
+          }
+        }
+
         // Logo
         const logoElem = document.getElementById("apiLogo");
         if (currentApi.logo && currentApi.logo.startsWith("http")) {
@@ -289,6 +314,8 @@
         const specDocsBtn = document.getElementById("btnSpecDocs");
         const specWebBtn = document.getElementById("btnSpecWebsite");
         const specGitBtn = document.getElementById("btnSpecGithub");
+        const swaggerBtn = document.getElementById("btnSwagger");
+        const specSwaggerBtn = document.getElementById("btnSpecSwagger");
 
         if (currentApi.websiteUrl) {
           websiteBtn.href = currentApi.websiteUrl;
@@ -309,6 +336,17 @@
         if (currentApi.githubUrl) {
           specGitBtn.href = currentApi.githubUrl;
           specGitBtn.style.display = "inline-flex";
+        }
+
+        if (currentApi.swaggerUrl) {
+          if (swaggerBtn) {
+            swaggerBtn.href = currentApi.swaggerUrl;
+            swaggerBtn.style.display = "inline-flex";
+          }
+          if (specSwaggerBtn) {
+            specSwaggerBtn.href = currentApi.swaggerUrl;
+            specSwaggerBtn.style.display = "inline-flex";
+          }
         }
 
         // Description & Tags
@@ -388,6 +426,13 @@ fetch${cleanFuncName}Data();`;
         document.getElementById("specFreeTier").textContent = currentApi.freeTier ? "Да" : "Нет";
         document.getElementById("specRateLimit").textContent = currentApi.rateLimit || "Не указан";
         document.getElementById("specStatus").textContent = currentApi.status || "active";
+
+        const specSource = document.getElementById("specSource");
+        if (specSource) {
+          specSource.innerHTML = (currentApi.source === "apis.guru" || currentApi.swaggerUrl)
+            ? `<span class="badge badge-primary" style="font-size: 0.8rem; padding: 2px 8px;">🌐 APIs.guru</span>`
+            : `<span class="badge badge-outline" style="font-size: 0.8rem; padding: 2px 8px;">⚡ Verified</span>`;
+        }
 
         // Check if favorited
         if (currentUser) {

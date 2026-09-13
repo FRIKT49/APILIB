@@ -22,6 +22,7 @@ import {
 } from "./api.js";
 import { deleteReview } from "./reviews.js";
 import { seedDatabase } from "./seed.js";
+import { importApisGuruToFirestore } from "./apisGuruImporter.js";
 import { openModal, closeModal, showConfirmDialog } from "./components/modal.js";
 import { toast } from "./components/toast.js";
 
@@ -29,11 +30,13 @@ import { toast } from "./components/toast.js";
  * Initialize Admin Dashboard
  */
 export async function initAdminDashboard() {
-  await loadStats();
-  await loadApisTable();
-  await loadUsersTable();
-  await loadReviewsTable();
   setupEventListeners();
+  await Promise.allSettled([
+    loadStats(),
+    loadApisTable(),
+    loadUsersTable(),
+    loadReviewsTable()
+  ]);
 }
 
 /**
@@ -355,6 +358,39 @@ function setupEventListeners() {
       } finally {
         btnSeed.disabled = false;
         btnSeed.textContent = "⚡ Загрузить демо-данные (Seed)";
+      }
+    });
+  }
+
+  // APIs.guru Sync button
+  const btnSyncGuru = document.getElementById("btnSyncApisGuru");
+  if (btnSyncGuru) {
+    btnSyncGuru.addEventListener("click", async () => {
+      const confirmed = await showConfirmDialog({
+        title: "Импорт из APIs.guru",
+        message: "Загрузить свежие проверенные OpenAPI спецификации из глобального каталога APIs.guru (GitHub, Stripe, Slack, Twilio, Spotify и др.) в базу Firestore?",
+        confirmText: "Импортировать",
+        cancelText: "Отмена"
+      });
+
+      if (!confirmed) return;
+
+      btnSyncGuru.disabled = true;
+      btnSyncGuru.textContent = "Загрузка из APIs.guru...";
+
+      try {
+        const count = await importApisGuruToFirestore(30, (current, total, name) => {
+          toast.info(`Импорт [${current}/${total}]: ${name}`);
+        });
+
+        toast.success(`Успешно импортировано ${count} API из APIs.guru!`);
+        await loadStats();
+        await loadApisTable();
+      } catch (err) {
+        toast.error("Ошибка импорта APIs.guru: " + err.message);
+      } finally {
+        btnSyncGuru.disabled = false;
+        btnSyncGuru.textContent = "🌐 Импорт из APIs.guru";
       }
     });
   }

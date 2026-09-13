@@ -11,6 +11,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import { exec } from "child_process";
 import { DEMO_APIS } from "./js/demoData.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -79,7 +80,7 @@ function toFirestoreFields(obj) {
 
 // GET /api/apis — Получить список API с фильтрацией
 app.get("/api/apis", async (req, res) => {
-  const { category, auth: authFilter, pricing, format, q, sortBy } = req.query;
+  const { category, auth: authFilter, pricing, format, q, sortBy, source } = req.query;
 
   try {
     const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/apis?pageSize=300`;
@@ -97,6 +98,13 @@ app.get("/api/apis", async (req, res) => {
     // Фильтрация
     if (category && category !== "All") {
       apis = apis.filter((a) => a.category === category);
+    }
+    if (source && source !== "All") {
+      if (source === "apis.guru") {
+        apis = apis.filter((a) => a.source === "apis.guru" || a.swaggerUrl);
+      } else if (source === "verified") {
+        apis = apis.filter((a) => a.source !== "apis.guru" && !a.swaggerUrl);
+      }
     }
     if (authFilter && authFilter !== "All") {
       apis = apis.filter((a) => a.authentication === authFilter);
@@ -243,6 +251,25 @@ app.post("/api/seed", async (req, res) => {
     } catch (_) {}
   }
   res.json({ success: true, count: DEMO_APIS.length });
+});
+
+// POST /api/sync-sources — Запустить синхронизацию из APIs.guru в каталог
+app.post("/api/sync-sources", (req, res) => {
+  const limit = parseInt(req.body?.limit, 10) || 30;
+  const scriptPath = path.join(__dirname, "scripts", "syncApisGuru.js");
+
+  exec(`node "${scriptPath}" --limit ${limit}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error("APIs.guru sync error:", error);
+      return res.status(500).json({ success: false, error: error.message, details: stderr });
+    }
+    console.log("APIs.guru sync output:\n", stdout);
+    res.json({
+      success: true,
+      message: `Синхронизация ${limit} API из APIs.guru успешно выполнена`,
+      output: stdout
+    });
+  });
 });
 
 // Запуск сервера

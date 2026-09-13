@@ -44,11 +44,18 @@ export const FORMAT_TYPES = [
   "Other"
 ];
 
+export const SOURCE_TYPES = [
+  "All",
+  "apis.guru",
+  "verified"
+];
+
 export class FilterManager {
   constructor(onChangeCallback) {
     this.onChange = onChangeCallback;
     this.state = {
       category: "All",
+      source: "All",
       authentication: "All",
       pricing: "All",
       format: "All",
@@ -73,6 +80,9 @@ export class FilterManager {
     if (params.has("format") && FORMAT_TYPES.includes(params.get("format"))) {
       this.state.format = params.get("format");
     }
+    if (params.has("source") && SOURCE_TYPES.includes(params.get("source"))) {
+      this.state.source = params.get("source");
+    }
     if (params.has("sort")) {
       this.state.sortBy = params.get("sort");
     }
@@ -84,6 +94,7 @@ export class FilterManager {
   syncToUrl() {
     const params = new URLSearchParams();
     if (this.state.category !== "All") params.set("category", this.state.category);
+    if (this.state.source !== "All") params.set("source", this.state.source);
     if (this.state.authentication !== "All") params.set("auth", this.state.authentication);
     if (this.state.pricing !== "All") params.set("pricing", this.state.pricing);
     if (this.state.format !== "All") params.set("format", this.state.format);
@@ -116,6 +127,7 @@ export class FilterManager {
   reset() {
     this.state = {
       category: "All",
+      source: "All",
       authentication: "All",
       pricing: "All",
       format: "All",

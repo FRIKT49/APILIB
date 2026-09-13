@@ -33,9 +33,12 @@
           <p class="text-secondary text-sm">Управление каталогом API, пользователями и модерация отзывов</p>
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex gap-2" style="flex-wrap: wrap;">
           <button id="btnSeedDatabase" class="btn btn-secondary">
             ⚡ Загрузить демо-данные (Seed)
+          </button>
+          <button id="btnSyncApisGuru" class="btn btn-secondary" style="border-color: rgba(99, 102, 241, 0.4); color: var(--accent-text);">
+            🌐 Импорт из APIs.guru
           </button>
           <button id="btnAddApi" class="btn btn-primary">
             + Добавить API
@@ -295,7 +298,7 @@
     import { renderNavbar } from "./js/components/navbar.js";
     import { initModals } from "./js/components/modal.js";
     import { toast } from "./js/components/toast.js";
-    import { onAuthChange } from "./js/auth.js";
+    import { onAuthChange, isSuperAdminEmail } from "./js/auth.js";
     import { initAdminDashboard } from "./js/admin.js";
 
     initTheme();
@@ -313,7 +316,9 @@
         return;
       }
 
-      if (!profile || profile.role !== "admin") {
+      const isAdmin = profile?.role === "admin" || user?.role === "admin" || isSuperAdminEmail(user.email);
+
+      if (!isAdmin) {
         toast.error("Доступ запрещен: у вас нет роли администратора (role: admin).");
         authCheck.innerHTML = `
           <div class="empty-state">

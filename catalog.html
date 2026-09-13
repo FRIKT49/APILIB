@@ -88,6 +88,16 @@
             </select>
           </div>
 
+          <!-- Source Filter -->
+          <div class="filter-select-wrapper">
+            <label for="sourceFilter">Источник:</label>
+            <select id="sourceFilter" class="filter-select">
+              <option value="All">Все источники</option>
+              <option value="apis.guru">🌐 APIs.guru (OpenAPI)</option>
+              <option value="verified">⚡ Проверенные API</option>
+            </select>
+          </div>
+
           <!-- Sort By -->
           <div class="filter-select-wrapper">
             <label for="sortFilter">Сортировка:</label>
@@ -254,6 +264,8 @@
         searchApis(state.searchQuery).then((results) => {
           let filtered = results;
           if (state.category !== "All") filtered = filtered.filter(a => a.category === state.category);
+          if (state.source === "apis.guru") filtered = filtered.filter(a => a.source === "apis.guru" || a.swaggerUrl);
+          if (state.source === "verified") filtered = filtered.filter(a => a.source !== "apis.guru" && !a.swaggerUrl);
           if (state.authentication !== "All") filtered = filtered.filter(a => a.authentication === state.authentication);
           if (state.format !== "All") filtered = filtered.filter(a => a.format === state.format);
           if (state.pricing === "Free") filtered = filtered.filter(a => a.freeTier === true);
@@ -271,12 +283,13 @@
       unsubscribeRealtime = subscribeToApis(
         {
           category: state.category,
+          source: state.source,
           authentication: state.authentication,
           pricing: state.pricing,
           format: state.format,
           sortBy: state.sortBy,
           sortOrder: state.sortBy === "name" ? "asc" : "desc",
-          pageSize: 12
+          pageSize: 16
         },
         (apis, lastDoc, error) => {
           if (error) {
@@ -309,12 +322,13 @@
         const { apis, lastDoc } = await fetchNextPageApis(
           {
             category: state.category,
+            source: state.source,
             authentication: state.authentication,
             pricing: state.pricing,
             format: state.format,
             sortBy: state.sortBy,
             sortOrder: state.sortBy === "name" ? "asc" : "desc",
-            pageSize: 12
+            pageSize: 16
           },
           currentLastDoc
         );
@@ -322,7 +336,7 @@
         currentLastDoc = lastDoc;
         renderApis(apis, true);
 
-        if (!lastDoc || apis.length < 12) {
+        if (!lastDoc || apis.length < 16) {
           btnLoadMore.style.display = "none";
         }
       } catch (err) {
@@ -339,6 +353,7 @@
 
     function syncFilterInputs() {
       const state = filterManager.getState();
+      document.getElementById("sourceFilter").value = state.source || "All";
       document.getElementById("authFilter").value = state.authentication;
       document.getElementById("pricingFilter").value = state.pricing;
       document.getElementById("formatFilter").value = state.format;
@@ -347,6 +362,7 @@
       searchClearBtn.classList.toggle("visible", Boolean(state.searchQuery));
     }
 
+    document.getElementById("sourceFilter").addEventListener("change", (e) => filterManager.setFilter("source", e.target.value));
     document.getElementById("authFilter").addEventListener("change", (e) => filterManager.setFilter("authentication", e.target.value));
     document.getElementById("pricingFilter").addEventListener("change", (e) => filterManager.setFilter("pricing", e.target.value));
     document.getElementById("formatFilter").addEventListener("change", (e) => filterManager.setFilter("format", e.target.value));
