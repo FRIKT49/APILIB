@@ -28,10 +28,18 @@ export function subscribeToApiReviews(apiId, callback) {
   }
 
   try {
+    // 1. Quick initial fetch from Server API
+    fetch(`/api/reviews?apiId=${encodeURIComponent(apiId)}`)
+      .then((r) => r.ok ? r.json() : [])
+      .then((revs) => {
+        if (Array.isArray(revs) && revs.length > 0) callback(revs);
+      })
+      .catch(() => {});
+
+    // 2. Query Firestore by apiId without composite index requirement
     const q = query(
       collection(db, "reviews"),
-      where("apiId", "==", apiId),
-      orderBy("createdAt", "desc")
+      where("apiId", "==", apiId)
     );
 
     return onSnapshot(
@@ -41,11 +49,16 @@ export function subscribeToApiReviews(apiId, callback) {
         snapshot.forEach((docSnap) => {
           reviews.push({ id: docSnap.id, ...docSnap.data() });
         });
+        // Sort in memory by createdAt descending
+        reviews.sort((a, b) => {
+          const tA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (new Date(a.createdAt).getTime() || 0);
+          const tB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (new Date(b.createdAt).getTime() || 0);
+          return tB - tA;
+        });
         callback(reviews);
       },
       (error) => {
-        console.error("Reviews onSnapshot error:", error);
-        callback([]);
+        console.warn("Firestore reviews subscription notice:", error.message);
       }
     );
   } catch (err) {
@@ -149,14 +162,23 @@ export async function recalculateApiRating(apiId) {
 export async function getUserReviews(userId) {
   if (!db || !userId) return [];
 
-  const q = query(
-    collection(db, "reviews"),
-    where("userId", "==", userId),
-    orderBy("createdAt", "desc")
-  );
+  try {
+    const q = query(
+      collection(db, "reviews"),
+      where("userId", "==", userId)
+    );
 
-  const snap = await getDocs(q);
-  const reviews = [];
-  snap.forEach((d) => reviews.push({ id: d.id, ...d.data() }));
-  return reviews;
+    const snap = await getDocs(q);
+    const reviews = [];
+    snap.forEach((d) => reviews.push({ id: d.id, ...d.data() }));
+    reviews.sort((a, b) => {
+      const tA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (new Date(a.createdAt).getTime() || 0);
+      const tB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (new Date(b.createdAt).getTime() || 0);
+      return tB - tA;
+    });
+    return reviews;
+  } catch (err) {
+    console.warn("getUserReviews error:", err.message);
+    return [];
+  }
 }

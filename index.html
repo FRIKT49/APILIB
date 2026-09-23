@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="css/components.css">
   <link rel="stylesheet" href="css/pages.css">
   <link rel="stylesheet" href="css/responsive.css">
+  <script src="js/libs/gsap.min.js"></script>
+  <script src="js/libs/ScrollTrigger.min.js"></script>
   <script>
     // Ensure initial page load always stays at the top (scrollY = 0)
     if ("scrollRestoration" in history) {
@@ -33,110 +35,212 @@
     <section class="landing-hero" id="heroSection">
       <div class="landing-hero-content">
         <div class="hero-eyebrow">
-          <span class="hero-eyebrow-symbol">▲</span> API Library
+          <span class="hero-eyebrow-symbol">▲</span> SPEC: OPENAPI 3.1 // DIRECTORY
         </div>
 
         <h1 class="landing-title">
-          Connect anything, build everything<br>with production-ready APIs
+          Curated API directory and<br>schema registry for developers
         </h1>
 
         <div class="landing-actions">
-          <a href="catalog.html" class="btn-pill btn-pill-primary" style="padding: 11px 28px; font-size: 0.95rem;">
-            Explore APIs &rarr;
+          <a href="catalog.html" class="btn-pill btn-pill-primary">
+            Browse Directory &rarr;
           </a>
-          <a href="#about" class="btn-pill btn-pill-secondary" style="padding: 11px 26px; font-size: 0.95rem;">
-            Features & Use Cases &darr;
+          <a href="#about" class="btn-pill btn-pill-secondary">
+            Architecture &darr;
           </a>
         </div>
       </div>
 
       <!-- Subtle Scroll Down Indicator -->
-      <a href="#about" class="scroll-indicator" aria-label="Scroll down to features">
-        <span>Scroll down</span>
+      <a href="#about" class="scroll-indicator" aria-label="Scroll down to architecture">
+        <span>Architecture</span>
         <span>&darr;</span>
       </a>
     </section>
 
-    <!-- Platform Stats & Information Section -->
-    <section class="section" id="about" style="padding-top: 64px; position: relative; z-index: 2;">
+    <!-- Interactive Scroll-Driven 3D Protocol Pipeline -->
+    <section class="pipeline-section" id="about">
+      <div class="pipeline-pinned-wrapper" id="pipelinePinWrapper">
+        <!-- Three.js 3D WebGL Canvas Layer -->
+        <canvas id="pipelineCanvas" class="pipeline-webgl-canvas"></canvas>
+
+        <!-- Subtle HUD Cyber Grid Overlay -->
+        <div class="pipeline-hud-grid"></div>
+
+        <div class="pipeline-content-container">
+          <!-- Top HUD Header & Timeline Scrubber -->
+          <div class="pipeline-header">
+            <div class="pipeline-header-top">
+              <div class="pipeline-header-titles">
+                <div class="pipeline-eyebrow">
+                  <span class="terminal-kicker">&gt;</span> SPEC: OPENAPI 3.1 // SCROLL-DRIVEN PROTOCOL PIPELINE
+                </div>
+                <h2 class="pipeline-title">
+                  End-to-End Protocol Architecture
+                </h2>
+              </div>
+
+              <div class="pipeline-header-actions">
+                <div class="pipeline-speed-group">
+                  <span class="pipeline-speed-label">SPEED:</span>
+                  <button class="pipeline-speed-btn" data-speed="0.5">0.5x</button>
+                  <button class="pipeline-speed-btn active" data-speed="1.0">1x</button>
+                  <button class="pipeline-speed-btn" data-speed="2.0">2x</button>
+                  <button class="pipeline-speed-btn" data-speed="0">PAUSE</button>
+                </div>
+
+                <button class="pipeline-action-btn" id="pipelineSendPacketBtn" title="Dispatch test packet stream">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  <span>Dispatch Sample Packet</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Scrub Timeline Scrubber Bar -->
+            <div class="pipeline-scrubber-bar">
+              <div class="pipeline-scrub-track">
+                <div class="pipeline-scrub-fill" id="pipelineScrubFill"></div>
+              </div>
+
+              <button class="pipeline-step-btn active" data-stage="0">
+                <span class="pipeline-step-num">01</span> <span class="step-label">INGRESS</span>
+              </button>
+              <button class="pipeline-step-btn" data-stage="1">
+                <span class="pipeline-step-num">02</span> <span class="step-label">GATEWAY</span>
+              </button>
+              <button class="pipeline-step-btn" data-stage="2">
+                <span class="pipeline-step-num">03</span> <span class="step-label">COMPILER</span>
+              </button>
+              <button class="pipeline-step-btn" data-stage="3">
+                <span class="pipeline-step-num">04</span> <span class="step-label">RUNTIME</span>
+              </button>
+            </div>
+
+            <!-- Live Telemetry Readout -->
+            <div class="pipeline-header-telemetry" id="pipelineHeaderTelemetry">
+              <span class="hud-pill"><span class="pulse-dot"></span> STAGE 01</span>
+              <span class="hud-pill">RATE: 2,420 REQ/S</span>
+              <span class="hud-pill">LATENCY: 2.1ms</span>
+              <span class="hud-pill">STATUS: 200 OK</span>
+            </div>
+          </div>
+
+          <!-- Two-Column Architecture Layout -->
+          <div class="pipeline-main-grid">
+            <!-- Left Column: 4 Architecture Stages Track -->
+            <div class="pipeline-stages-track">
+              <!-- Stage 01 -->
+              <div class="pipeline-stage-card active" data-stage="0">
+                <div class="pipeline-stage-head">
+                  <span class="pipeline-stage-tag">01 // INGRESS &amp; CLIENT REQUEST</span>
+                  <span class="pipeline-stage-status status-active"><span class="stage-status-dot"></span> ACTIVE</span>
+                </div>
+                <h3 class="pipeline-stage-title">Ingress &amp; Client Request</h3>
+                <p class="pipeline-stage-subtitle">JSON payload, query params, auth bearer token</p>
+                <div class="pipeline-stage-chips">
+                  <span class="pipeline-chip">POST /v1/query</span>
+                  <span class="pipeline-chip">3.8 KB</span>
+                  <span class="pipeline-chip">BEARER JWT</span>
+                  <span class="pipeline-chip">2,420 REQ/S</span>
+                </div>
+              </div>
+
+              <!-- Stage 02 -->
+              <div class="pipeline-stage-card" data-stage="1">
+                <div class="pipeline-stage-head">
+                  <span class="pipeline-stage-tag">02 // SCHEMA VALIDATION &amp; PROTOCOL GATEWAY</span>
+                  <span class="pipeline-stage-status status-queued"><span class="stage-status-dot"></span> QUEUED</span>
+                </div>
+                <h3 class="pipeline-stage-title">Schema Validation &amp; Protocol Gateway</h3>
+                <p class="pipeline-stage-subtitle">Strict OpenAPI 3.1 schema compliance, rate-limiting, CORS</p>
+                <div class="pipeline-stage-chips">
+                  <span class="pipeline-chip">OAS 3.1.0</span>
+                  <span class="pipeline-chip">250 RPS BURST</span>
+                  <span class="pipeline-chip">CORS PASS</span>
+                  <span class="pipeline-chip">AST VERIFY</span>
+                </div>
+              </div>
+
+              <!-- Stage 03 -->
+              <div class="pipeline-stage-card" data-stage="2">
+                <div class="pipeline-stage-head">
+                  <span class="pipeline-stage-tag">03 // TYPE-SAFE SDK &amp; CODE COMPILATION</span>
+                  <span class="pipeline-stage-status status-queued"><span class="stage-status-dot"></span> QUEUED</span>
+                </div>
+                <h3 class="pipeline-stage-title">Type-Safe SDK &amp; Code Compilation</h3>
+                <p class="pipeline-stage-subtitle">Dynamic TypeScript / Python bindings generation</p>
+                <div class="pipeline-stage-chips">
+                  <span class="pipeline-chip">TS STRICT v5.5</span>
+                  <span class="pipeline-chip">PYDANTIC V2</span>
+                  <span class="pipeline-chip">WASM COMPILER</span>
+                  <span class="pipeline-chip">ZERO ANY</span>
+                </div>
+              </div>
+
+              <!-- Stage 04 -->
+              <div class="pipeline-stage-card" data-stage="3">
+                <div class="pipeline-stage-head">
+                  <span class="pipeline-stage-tag">04 // MULTI-AGENT RUNTIME &amp; DISPATCH</span>
+                  <span class="pipeline-stage-status status-queued"><span class="stage-status-dot"></span> QUEUED</span>
+                </div>
+                <h3 class="pipeline-stage-title">Multi-Agent Runtime &amp; Dispatch</h3>
+                <p class="pipeline-stage-subtitle">Claude Code, OpenAI function tools, MCP protocol dispatch</p>
+                <div class="pipeline-stage-chips">
+                  <span class="pipeline-chip">MCP RFC-2024.1</span>
+                  <span class="pipeline-chip">&lt; 8ms DISPATCH</span>
+                  <span class="pipeline-chip">CLAUDE / OPENAI</span>
+                  <span class="pipeline-chip">STREAMING</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Interactive Live Telemetry & Inspector Panel -->
+            <div class="pipeline-inspector-panel">
+              <div class="inspector-top-bar">
+                <div class="inspector-stage-title" id="pipelineTerminalStageTitle">
+                  <span class="inspector-badge badge-stage">STAGE 01</span>
+                  <span class="inspector-title-text">INGRESS &amp; CLIENT REQUEST</span>
+                </div>
+                <div class="inspector-tabs">
+                  <button class="inspector-tab-btn active" data-tab="schema">Schema</button>
+                  <button class="inspector-tab-btn" data-tab="client">Client</button>
+                  <button class="inspector-tab-btn" data-tab="params">Params</button>
+                  <button class="inspector-tab-btn" data-tab="telemetry">Telemetry</button>
+                </div>
+              </div>
+
+              <div class="inspector-content-area">
+                <pre class="inspector-code-block"><code id="pipelineInspectorCode"></code></pre>
+                <div class="inspector-params-view" id="pipelineInspectorParams" style="display: none;"></div>
+                <div class="inspector-telemetry-grid" id="pipelineInspectorTelemetry" style="display: none;"></div>
+              </div>
+
+              <div class="inspector-bottom-bar">
+                <div class="inspector-bottom-status">
+                  <span class="pulse-dot"></span>
+                  <span>PIPELINE HEALTHY // 0 PACKET LOSS</span>
+                </div>
+                <div>EDGE LATENCY: 2.1ms</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Platform Stats & Client Implementation Section -->
+    <section class="section" id="clientImplementation" style="padding-top: 64px; position: relative; z-index: 2;">
       <div class="container">
-        <!-- Section Header / Mission Statement -->
-        <div class="text-center" style="max-width: 740px; margin: 0 auto 48px;">
-          <div style="display: inline-block; font-size: 0.8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-primary); margin-bottom: 12px;">
-            About the Platform
-          </div>
-          <h2 style="font-size: clamp(1.9rem, 3.4vw, 2.5rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 16px; color: var(--text-primary); line-height: 1.2;">
-            A unified integration hub for developers and AI agents
-          </h2>
-          <p style="color: var(--text-secondary); font-size: 1.0625rem; line-height: 1.65;">
-            No more juggling dozens of open tabs with outdated documentation. API Library curates verified web services, standardizes response contracts, and delivers ready-to-run integration snippets in one click.
-          </p>
-        </div>
-
-        <!-- Metrics Strip -->
-        <div class="metrics-grid" style="margin: 0 0 70px;">
-          <div class="metric-card">
-            <div class="metric-val">100+</div>
-            <div class="metric-desc">Curated & Tested APIs</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-val">12</div>
-            <div class="metric-desc">Core Service Categories</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-val">&lt; 50ms</div>
-            <div class="metric-desc">Instant Search Latency</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-val">100%</div>
-            <div class="metric-desc">Open Specifications & Schemas</div>
-          </div>
-        </div>
-
-        <!-- Use Cases Section Header -->
-        <div class="text-center" style="max-width: 640px; margin: 0 auto 36px;">
-          <div style="display: inline-block; font-size: 0.8125rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-primary); margin-bottom: 12px;">
-            Use Cases
-          </div>
-          <h2 style="font-size: clamp(1.8rem, 3.2vw, 2.3rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 12px; color: var(--text-primary);">
-            Engineered for modern workflows
-          </h2>
-          <p style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6;">
-            Built for both human software engineers and autonomous agent pipelines.
-          </p>
-        </div>
-
-        <!-- Capabilities Cards Grid -->
-        <div class="capabilities-grid">
-          <div class="capability-card">
-            <div class="capability-icon">⚡</div>
-            <h3 class="capability-title">Web & Mobile Development</h3>
-            <p class="capability-text">
-              Instant fuzzy search across titles, endpoints, and tags (<kbd class="nav-search-kbd">Ctrl K</kbd>). Transparent authentication badges: API Key, Bearer Token, or No Auth.
-            </p>
-          </div>
-
-          <div class="capability-card">
-            <div class="capability-icon">🤖</div>
-            <h3 class="capability-title">Autonomous AI Systems</h3>
-            <p class="capability-text">
-              Machine-readable OpenAPI schemas and native Model Context Protocol (MCP) compatibility. AI agents can query and invoke endpoints seamlessly.
-            </p>
-          </div>
-
-          <div class="capability-card">
-            <div class="capability-icon">🚀</div>
-            <h3 class="capability-title">Startups & Rapid MVPs</h3>
-            <p class="capability-text">
-              Production-ready building blocks: payments, geodata, weather radars, and LLMs. Ship in hours instead of weeks.
-            </p>
-          </div>
-        </div>
-
         <!-- Interactive Code Playground / Terminal -->
-        <div class="text-center" style="max-width: 600px; margin: 60px auto 24px;">
-          <h2 style="font-size: clamp(1.6rem, 2.8vw, 2rem); font-weight: 700; letter-spacing: -0.03em; margin-bottom: 8px; color: var(--text-primary);">
-            Integration Preview
+        <div class="text-center" style="max-width: 640px; margin: 40px auto 24px;">
+          <div style="display: inline-block; font-size: 0.775rem; font-family: var(--font-mono); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 12px;">
+            05 // CLIENT IMPLEMENTATION
+          </div>
+          <h2 style="font-size: clamp(1.6rem, 2.8vw, 2rem); font-weight: 700; letter-spacing: -0.035em; margin-bottom: 8px; color: var(--text-primary);">
+            Universal request boilerplate
           </h2>
           <p style="color: var(--text-secondary); font-size: 0.9375rem;">
             Standardized calls for any API in the catalog.
@@ -169,13 +273,16 @@ console.log("Result:", data);</code></pre>
 
         <!-- Minimalist CTA Callout -->
         <div class="landing-cta">
+          <div style="display: inline-block; font-size: 0.775rem; font-family: var(--font-mono); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 12px;">
+            06 // REGISTRY ACCESS
+          </div>
           <h2 class="landing-cta-title">
-            Ready to accelerate your builds?
+            Start querying endpoints immediately
           </h2>
           <p class="landing-cta-subtitle">
             Browse the full catalog, filter by requirements, and save your favorite services in one place.
           </p>
-          <a href="catalog.html" class="btn-pill btn-pill-primary" style="padding: 12px 32px; font-size: 1rem;">
+          <a href="catalog.html" class="btn-pill btn-pill-primary" style="padding: 12px 28px; font-size: 0.95rem;">
             Open API Catalog &rarr;
           </a>
         </div>
@@ -191,9 +298,11 @@ console.log("Result:", data);</code></pre>
     import { initTheme } from "./js/theme.js";
     import { renderNavbar } from "./js/components/navbar.js";
     import { initModals } from "./js/components/modal.js";
+    import { initPipelineTimeline } from "./js/pipelineTimeline.js";
     initTheme();
     renderNavbar("home");
     initModals();
+    const pipelineTimeline = initPipelineTimeline();
 
     // Interactive Code Playground Tabs
     const snippets = {
@@ -246,6 +355,8 @@ curl -X GET "https://api.example.com/v1/data" \\
 
     const getAboutScrollTop = () => {
       if (!aboutSection) return window.innerHeight;
+      const parentSpacer = aboutSection.closest(".pin-spacer");
+      if (parentSpacer) return parentSpacer.offsetTop;
       return aboutSection.offsetTop;
     };
 
@@ -364,7 +475,7 @@ curl -X GET "https://api.example.com/v1/data" \\
     });
 
     // 4. Smooth scroll for in-page anchors without modifying URL hash
-    document.querySelectorAll('a[href="#about"]').forEach((anchor) => {
+    document.querySelectorAll('a[href$="#about"]').forEach((anchor) => {
       anchor.addEventListener("click", (e) => {
         e.preventDefault();
         scrollToAbout();

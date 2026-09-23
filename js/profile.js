@@ -143,7 +143,9 @@ async function loadFavoritesTab(userId) {
     if (favorites.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
-          <div class="empty-state-icon">⭐</div>
+          <div class="empty-state-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          </div>
           <h3 class="empty-state-title">В избранном пока ничего нет</h3>
           <p class="empty-state-text">Вы можете добавлять интересные API в избранное со страницы каталога или из карточки API.</p>
           <a href="index.html" class="btn btn-primary btn-sm">Перейти в каталог</a>
@@ -184,7 +186,9 @@ async function loadReviewsTab(userId) {
     if (reviews.length === 0) {
       container.innerHTML = `
         <div class="empty-state">
-          <div class="empty-state-icon">💬</div>
+          <div class="empty-state-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </div>
           <h3 class="empty-state-title">Вы ещё не оставили ни одного отзыва</h3>
           <p class="empty-state-text">Оценивайте используемые API на их страницах, чтобы помочь другим разработчикам.</p>
         </div>
@@ -211,7 +215,8 @@ async function loadReviewsTab(userId) {
               </a>
             </div>
             <div class="api-rating" style="font-size: 0.875rem;">
-              ${"★".repeat(rev.rating)}${"☆".repeat(5 - rev.rating)} (${rev.rating}/5)
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span>${rev.rating} / 5</span>
             </div>
           </div>
           <div class="review-actions">

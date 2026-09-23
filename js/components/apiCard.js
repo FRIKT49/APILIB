@@ -29,12 +29,12 @@ export function createApiCardElement(api, isFavorite = false) {
     pricingBadge = `<span class="badge badge-neutral">Freemium</span>`;
   }
 
-  // Source badge: APIs.guru or Verified
+  // Source badge: APIs.guru or Verified (clean text, no emojis)
   let sourceBadge = "";
   if (api.source === "apis.guru" || api.swaggerUrl) {
-    sourceBadge = `<span class="badge" style="font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; background: rgba(99, 102, 241, 0.12); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.28);" title="Импортировано из глобального каталога APIs.guru (OpenAPI)">🌐 APIs.guru</span>`;
+    sourceBadge = `<span class="badge" style="font-size: 0.68rem; padding: 1px 6px; border-radius: 2px; background: rgba(99, 102, 241, 0.12); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.28);" title="Импортировано из глобального каталога APIs.guru (OpenAPI)">APIs.guru</span>`;
   } else {
-    sourceBadge = `<span class="badge" style="font-size: 0.68rem; padding: 1px 6px; border-radius: 4px; background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.28);" title="Проверенное официальное API платформы">⚡ Verified</span>`;
+    sourceBadge = `<span class="badge" style="font-size: 0.68rem; padding: 1px 6px; border-radius: 2px; background: rgba(16, 185, 129, 0.12); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.28);" title="Проверенное официальное API платформы">Verified</span>`;
   }
 
   // Tags HTML (first 3)
@@ -43,10 +43,36 @@ export function createApiCardElement(api, isFavorite = false) {
     .map((tag) => `<span class="tag-pill">#${escapeHtml(tag)}</span>`)
     .join("");
 
-  // Logo: image URL or emoji/letter fallback
-  const logoHtml = api.logo && api.logo.startsWith("http")
-    ? `<img src="${escapeHtml(api.logo)}" alt="${escapeHtml(api.name)}" class="api-logo" loading="lazy" onerror="this.onerror=null;this.textContent='🔌';">`
-    : `<div class="api-logo">${api.logo || "⚡"}</div>`;
+  function getMonogram(name, logo) {
+    if (logo && typeof logo === "string" && /^[a-zA-Z0-9]{1,4}$/.test(logo.trim())) {
+      return logo.trim().toUpperCase();
+    }
+    const clean = (name || "API").replace(/[^a-zA-Z0-9\s]/g, "").trim();
+    const words = clean.split(/\s+/).filter(w => w.length > 0 && !["API", "REST", "Platform", "Database", "Inference", "Voice"].includes(w));
+    if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+    if (words.length === 1 && words[0].length >= 2) return words[0].substring(0, 2).toUpperCase();
+    return clean.substring(0, 2).toUpperCase() || "AP";
+  }
+
+  const monogram = getMonogram(api.name, api.logo);
+  const isPlaceholderLogo = !api.logo || (typeof api.logo === "string" && (
+    api.logo.includes("_profile_image.svg") ||
+    api.logo.includes("no-logo") ||
+    !api.logo.startsWith("http")
+  ));
+
+  const logoHtml = !isPlaceholderLogo
+    ? `<img src="${escapeHtml(api.logo)}" alt="${escapeHtml(api.name)}" class="api-logo" loading="lazy" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'api-logo',textContent:'${monogram}'}));">`
+    : `<div class="api-logo">${escapeHtml(monogram)}</div>`;
+
+  const starFill = isFavorite ? "currentColor" : "none";
+  const favStarSvg = `<svg width="15" height="15" viewBox="0 0 24 24" fill="${starFill}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+
+  const rawDesc = api.shortDescription || api.description || "Описание отсутствует.";
+  const cleanDesc = rawDesc
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[*_`#]/g, "")
+    .trim();
 
   card.innerHTML = `
     <div class="api-card-header">
@@ -64,11 +90,11 @@ export function createApiCardElement(api, isFavorite = false) {
               data-favorite-btn="${api.id}" 
               title="${isFavorite ? "Удалить из избранного" : "Добавить в избранное"}"
               aria-label="В избранное">
-        ${isFavorite ? "★" : "☆"}
+        ${favStarSvg}
       </button>
     </div>
 
-    <p class="api-card-desc">${escapeHtml(api.shortDescription || api.description || "Описание отсутствует.")}</p>
+    <p class="api-card-desc">${escapeHtml(cleanDesc)}</p>
 
     ${tagsHtml ? `<div class="api-card-tags">${tagsHtml}</div>` : ""}
 
@@ -90,7 +116,7 @@ export function createApiCardElement(api, isFavorite = false) {
 
     <div class="api-card-footer">
       <div class="api-rating" title="Рейтинг: ${ratingVal} на основе ${ratingCount} оценок">
-        <span>★</span>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
         <span>${ratingVal}</span>
         <span class="api-rating-count">(${ratingCount})</span>
       </div>
@@ -123,12 +149,12 @@ export function createSkeletonCardElement() {
     <div class="skeleton skeleton-text"></div>
     <div class="skeleton skeleton-text"></div>
     <div style="margin-top: 16px; display: flex; gap: 6px;">
-      <div class="skeleton" style="width: 50px; height: 18px; border-radius: 99px;"></div>
-      <div class="skeleton" style="width: 60px; height: 18px; border-radius: 99px;"></div>
+      <div class="skeleton" style="width: 50px; height: 18px; border-radius: 2px;"></div>
+      <div class="skeleton" style="width: 60px; height: 18px; border-radius: 2px;"></div>
     </div>
     <div class="api-card-footer" style="margin-top: 24px;">
       <div class="skeleton" style="width: 50px; height: 20px;"></div>
-      <div class="skeleton" style="width: 85px; height: 32px; border-radius: 6px;"></div>
+      <div class="skeleton" style="width: 85px; height: 32px; border-radius: 2px;"></div>
     </div>
   `;
   return skeleton;

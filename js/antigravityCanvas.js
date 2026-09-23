@@ -358,12 +358,12 @@ export function initAntigravityCanvas(canvasId = "bgDotsCanvas") {
     camera.bottom = -height * 0.5;
     camera.updateProjectionMatrix();
 
-    // Scale ring radius appropriately for screen size (wider ring)
+    // Scale ring radius appropriately for screen size (wider and more expansive ring)
     const screenMin = Math.min(width, height);
-    ring.baseRadius = Math.max(250, Math.min(430, screenMin * 0.46));
-    ring.width = ring.baseRadius * 0.46;
-    ring.width2 = ring.baseRadius * 0.22;
-    ring.displacement = 28;
+    ring.baseRadius = Math.max(260, Math.min(460, screenMin * 0.48));
+    ring.width = ring.baseRadius * 0.52;
+    ring.width2 = ring.baseRadius * 0.24;
+    ring.displacement = 32;
 
     // Default resting ring position (offset top-left like antigravity.google)
     ring.x = -width * 0.40;
@@ -470,24 +470,24 @@ export function initAntigravityCanvas(canvasId = "bgDotsCanvas") {
     // When the cursor leaves the screen, the ring STAYS in place where the cursor was,
     // breathing organically with gentle in-place float!
     if (mouse.hasMoved) {
-      const inPlaceWaveX = Math.sin(timeSec * 0.45) * 14;
-      const inPlaceWaveY = Math.cos(timeSec * 0.35) * 12;
+      const inPlaceWaveX = Math.sin(timeSec * 0.35) * 16;
+      const inPlaceWaveY = Math.cos(timeSec * 0.28) * 14;
       ring.targetX = mouse.targetX + inPlaceWaveX;
       ring.targetY = mouse.targetY + inPlaceWaveY;
-      ring.x += (ring.targetX - ring.x) * 0.045;
-      ring.y += (ring.targetY - ring.y) * 0.045;
+      ring.x += (ring.targetX - ring.x) * 0.040;
+      ring.y += (ring.targetY - ring.y) * 0.040;
     } else {
-      const idleWaveX = Math.sin(timeSec * 0.45) * 25;
-      const idleWaveY = Math.cos(timeSec * 0.35) * 20;
+      const idleWaveX = Math.sin(timeSec * 0.35) * 28;
+      const idleWaveY = Math.cos(timeSec * 0.28) * 22;
       ring.targetX = -width * 0.38 + idleWaveX;
       ring.targetY = height * 0.30 + idleWaveY;
-      ring.x += (ring.targetX - ring.x) * 0.025;
-      ring.y += (ring.targetY - ring.y) * 0.025;
+      ring.x += (ring.targetX - ring.x) * 0.022;
+      ring.y += (ring.targetY - ring.y) * 0.022;
     }
 
-    // Dynamic Asymmetric Breathing Ring Radius (wider & more organic):
+    // Dynamic Asymmetric Breathing Ring Radius (slower tempo, wider & more expansive):
     // Incommensurate harmonic frequencies create an organic breathing rhythm (unequal inhale/exhale cycles)
-    const breatheCycle = Math.sin(timeSec * 0.75) * 26 + Math.cos(timeSec * 1.85) * 15 + Math.sin(timeSec * 3.1 + 1.2) * 8;
+    const breatheCycle = Math.sin(timeSec * 0.42) * 52 + Math.cos(timeSec * 1.05) * 28 + Math.sin(timeSec * 1.90 + 1.2) * 14;
     ring.radius = ring.baseRadius + breatheCycle;
 
     const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
@@ -527,12 +527,12 @@ export function initAntigravityCanvas(canvasId = "bgDotsCanvas") {
       const sinA = Math.sin(polarAngle);
 
       // 3. ASYMMETRIC BREATHING RADIUS:
-      // Spatial angular deformation via 2D simplex noise (creates an organic, undulating membrane)
-      const lobeNoise = snoise.noise2D(cosA * 1.4 + timeSec * 0.15, sinA * 1.4 + timeSec * 0.12) * 36;
+      // Deeper, more expansive spatial undulations (54px amplitude) at slower organic speed
+      const lobeNoise = snoise.noise2D(cosA * 1.3 + timeSec * 0.10, sinA * 1.3 + timeSec * 0.08) * 54;
       const localRadius = ringRadius + lobeNoise;
 
       // Micro edge noise perturbation for natural fluid edge
-      const edgeNoise = snoise.noise2D(bx * 0.0035 + timeSec * 0.2, by * 0.0035) * 14;
+      const edgeNoise = snoise.noise2D(bx * 0.0035 + timeSec * 0.14, by * 0.0035) * 18;
       const distPerturbed = dist + edgeNoise;
 
       // Dual-band ring wave:
@@ -546,8 +546,8 @@ export function initAntigravityCanvas(canvasId = "bgDotsCanvas") {
       wave = Math.max(0, Math.min(1.5, wave));
 
       // 4. PURE RADIAL BREATHING DISPLACEMENT (ZERO SWIRL / БЕЗ ЗАКРУТКИ):
-      // Particles pulse outward and inward along their radial rays, with NO rotational/tangential velocity!
-      const radialBreathPulse = Math.sin(timeSec * 1.2 + dist * 0.008) * 5.0 * wave;
+      // Outward traveling breathing wave pulse with deep, dynamic expansion
+      const radialBreathPulse = Math.sin(timeSec * 0.85 - dist * 0.012) * 14.0 * wave;
       const dispFactor = (Math.pow(t2, 0.75) * ring.displacement) + radialBreathPulse;
       let targetDispX = cosA * dispFactor;
       let targetDispY = sinA * dispFactor;
@@ -587,9 +587,10 @@ export function initAntigravityCanvas(canvasId = "bgDotsCanvas") {
       // 7. METAMORPHOSIS: Circular Dot -> Sleek Radial Capsule ONLY in Ring Proximity
       // STRICTLY NO THICKNESS MAGNIFICATION (thickness is permanently 1.8px)
       // When waveActivation = 0: currentLength = 1.8px (PERFECT CIRCULAR DOT)
-      // When waveActivation > 0: currentLength stretches up to 8-13px
-      const targetLength = p.baseLength + (p.maxStretch * p.waveActivation) + (shockwaveFactor * 6.0);
-      p.currentLength += (targetLength - p.currentLength) * 0.20;
+      // Dynamic stretch pulses in length in sync with the breathing expansion
+      const dynamicStretch = p.maxStretch * p.waveActivation * (1.0 + Math.sin(timeSec * 0.85 - dist * 0.012) * 0.32);
+      const targetLength = p.baseLength + Math.max(0, dynamicStretch) + (shockwaveFactor * 6.0);
+      p.currentLength += (targetLength - p.currentLength) * 0.18;
 
       // 8. Dynamic Radial Alignment
       if (p.waveActivation > 0.03) {

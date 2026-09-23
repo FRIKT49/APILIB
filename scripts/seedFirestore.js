@@ -91,17 +91,17 @@ async function run() {
     try {
       await uploadApi(api);
       success++;
-      console.log(`[${i + 1}/${DEMO_APIS.length}] ✓ Загружен: ${api.name} (${api.category})`);
+      console.log(`[${i + 1}/${DEMO_APIS.length}] [OK] Loaded: ${api.name} (${api.category})`);
     } catch (err) {
       errors++;
-      console.error(`[${i + 1}/${DEMO_APIS.length}] ✗ Ошибка ${api.name}:`, err.message);
+      console.error(`[${i + 1}/${DEMO_APIS.length}] [ERR] Failed ${api.name}:`, err.message);
     }
     // Small delay to prevent rate limit spikes
     await new Promise((r) => setTimeout(r, 100));
   }
 
   console.log("==================================================");
-  console.log(`🎉 Импорт завершен! Успешно: ${success}, Ошибок: ${errors}`);
+  console.log(`[COMPLETE] Seed finished. Success: ${success}, Errors: ${errors}`);
   console.log("==================================================");
 }
 

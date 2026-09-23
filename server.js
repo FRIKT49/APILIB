@@ -78,27 +78,68 @@ function toFirestoreFields(obj) {
 // API ROUTES
 // =============================================================================
 
-// GET /api/apis — Получить список API с фильтрацией
+let apisCache = null;
+let apisCacheTime = 0;
+const CACHE_TTL_MS = 60 * 1000;
+
+async function getAllApisCached() {
+  const now = Date.now();
+  if (apisCache && (now - apisCacheTime < CACHE_TTL_MS)) {
+    return apisCache;
+  }
+  try {
+    let allDocs = [];
+    let pageToken = "";
+    do {
+      const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/apis?pageSize=300${pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : ""}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.documents && data.documents.length > 0) {
+        allDocs.push(...data.documents.map(parseFirestoreDoc));
+      }
+      pageToken = data.nextPageToken || "";
+    } while (pageToken);
+
+    if (allDocs.length > 0) {
+      apisCache = allDocs;
+      apisCacheTime = now;
+      return apisCache;
+    }
+  } catch (_) {}
+  return localApis;
+}
+
+// GET /api/categories — Получить категории и количество API в каждой
+app.get("/api/categories", async (req, res) => {
+  const all = await getAllApisCached();
+  const counts = { All: all.length };
+  for (const api of all) {
+    const cat = api.category || "Other";
+    counts[cat] = (counts[cat] || 0) + 1;
+  }
+  res.json({ counts, total: all.length });
+});
+
+// POST /api/cache/clear — Сбросить серверный кэш API
+app.post("/api/cache/clear", (req, res) => {
+  apisCache = null;
+  apisCacheTime = 0;
+  res.json({ success: true, message: "Server API cache cleared" });
+});
+
+// GET /api/apis — Получить список API с фильтрацией и пагинацией
 app.get("/api/apis", async (req, res) => {
-  const { category, auth: authFilter, pricing, format, q, sortBy, source } = req.query;
+  const { category, auth: authFilter, pricing, format, q, sortBy, source, page, limit } = req.query;
 
   try {
-    const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/apis?pageSize=300`;
-    const response = await fetch(url);
-    const data = await response.json();
+    let apis = [...(await getAllApisCached())];
 
-    let apis = [];
-    if (data.documents && data.documents.length > 0) {
-      apis = data.documents.map(parseFirestoreDoc);
-    } else {
-      // Использовать встроенные данные, если база пуста или создается
-      apis = localApis;
-    }
-
-    // Фильтрация
+    // Фильтрация: Категория
     if (category && category !== "All") {
       apis = apis.filter((a) => a.category === category);
     }
+
+    // Фильтрация: Источник
     if (source && source !== "All") {
       if (source === "apis.guru") {
         apis = apis.filter((a) => a.source === "apis.guru" || a.swaggerUrl);
@@ -106,17 +147,25 @@ app.get("/api/apis", async (req, res) => {
         apis = apis.filter((a) => a.source !== "apis.guru" && !a.swaggerUrl);
       }
     }
+
+    // Фильтрация: Авторизация
     if (authFilter && authFilter !== "All") {
       apis = apis.filter((a) => a.authentication === authFilter);
     }
+
+    // Фильтрация: Формат
     if (format && format !== "All") {
       apis = apis.filter((a) => a.format === format);
     }
+
+    // Фильтрация: Цена / Free Tier
     if (pricing && pricing !== "All") {
       if (pricing === "Free") apis = apis.filter((a) => a.freeTier === true);
       else if (pricing === "Paid") apis = apis.filter((a) => a.freeTier === false);
       else if (pricing === "Freemium") apis = apis.filter((a) => a.pricing === "Freemium");
     }
+
+    // Поиск
     if (q && q.trim().length >= 2) {
       const search = q.trim().toLowerCase();
       apis = apis.filter(
@@ -127,15 +176,41 @@ app.get("/api/apis", async (req, res) => {
       );
     }
 
-    // Сортировка
-    if (sortBy === "rating") apis.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    else if (sortBy === "popularity") apis.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
-    else if (sortBy === "name") apis.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    // Умная сортировка:
+    if (sortBy === "popularity") {
+      apis.sort((a, b) => (b.popularity || 0) - (a.popularity || 0) || (b.rating || 0) - (a.rating || 0));
+    } else if (sortBy === "name") {
+      apis.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    } else if (sortBy === "createdAt") {
+      apis.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+    } else {
+      // По умолчанию: высокий рейтинг + высокая популярность
+      apis.sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.popularity || 0) - (a.popularity || 0));
+    }
 
-    res.json({ apis, total: apis.length });
+    const total = apis.length;
+    let paginated = apis;
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = limit === "all" ? total : (parseInt(limit, 10) || 18);
+
+    if (limit !== "all") {
+      const startIndex = (pageNum - 1) * limitNum;
+      paginated = apis.slice(startIndex, startIndex + limitNum);
+    }
+
+    const totalPages = Math.ceil(total / limitNum) || 1;
+    const hasMore = pageNum < totalPages;
+
+    res.json({
+      apis: paginated,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages,
+      hasMore
+    });
   } catch (err) {
-    // Бесперебойный fallback
-    res.json({ apis: localApis, total: localApis.length });
+    res.json({ apis: localApis.slice(0, 18), total: localApis.length, page: 1, totalPages: 1, hasMore: false });
   }
 });
 
@@ -272,11 +347,96 @@ app.post("/api/sync-sources", (req, res) => {
   });
 });
 
+// ALL /api/ping — Live health & endpoint tester
+app.all("/api/ping", async (req, res) => {
+  const targetUrl = req.query.url || req.body?.url;
+  const method = (req.query.method || req.body?.method || "GET").toUpperCase();
+  const apiKey = req.query.apiKey || req.body?.apiKey;
+  const authHeader = req.query.authHeader || req.body?.authHeader;
+
+  if (!targetUrl) {
+    return res.status(400).json({ error: "Параметр url обязателен" });
+  }
+
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(targetUrl);
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+      throw new Error("Неподдерживаемый протокол");
+    }
+  } catch (err) {
+    return res.status(400).json({ error: "Некорректный URL" });
+  }
+
+  const startTime = Date.now();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+  const headers = {
+    "User-Agent": "APILibrary-HealthCheck/1.0",
+    "Accept": "application/json, text/plain, */*"
+  };
+
+  if (apiKey) {
+    if (authHeader === "X-API-Key") headers["X-API-Key"] = apiKey;
+    else headers["Authorization"] = `Bearer ${apiKey}`;
+  }
+
+  try {
+    const fetchRes = await fetch(parsedUrl.toString(), {
+      method,
+      headers,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    const latencyMs = Date.now() - startTime;
+    const contentType = fetchRes.headers.get("content-type") || "";
+
+    let responseData = null;
+    if (contentType.includes("application/json")) {
+      try {
+        responseData = await fetchRes.json();
+      } catch (_) {
+        responseData = await fetchRes.text();
+      }
+    } else {
+      const text = await fetchRes.text();
+      responseData = text.slice(0, 1000);
+    }
+
+    res.json({
+      online: fetchRes.status < 500,
+      status: fetchRes.status,
+      statusText: fetchRes.statusText || (fetchRes.ok ? "OK" : "HTTP " + fetchRes.status),
+      latencyMs,
+      contentType,
+      data: responseData
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    const latencyMs = Date.now() - startTime;
+    const isTimeout = err.name === "AbortError";
+    res.json({
+      online: false,
+      status: isTimeout ? 504 : 502,
+      statusText: isTimeout ? "Gateway Timeout (7s)" : "Connection Failed",
+      error: err.message,
+      latencyMs
+    });
+  }
+});
+
+// Favicon handler
+app.get("/favicon.ico", (req, res) => {
+  res.setHeader("Content-Type", "image/svg+xml");
+  res.send('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="12 2 22 20 2 20" fill="#3b82f6"/></svg>');
+});
+
 // Запуск сервера
 app.listen(PORT, () => {
   console.log("==================================================");
-  console.log(`🚀 API Library Server запущен!`);
-  console.log(`👉 Откройте в браузере: http://localhost:${PORT}`);
-  console.log(`🛡️  Блокировка AdBlock полностью устранена!`);
+  console.log(`[SERVER] API Library Server active`);
+  console.log(`[SERVER] Local address: http://localhost:${PORT}`);
+  console.log(`[SERVER] Proxy mode: Active`);
   console.log("==================================================");
 });

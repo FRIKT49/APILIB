@@ -155,7 +155,7 @@ export function parseApisGuruItem(providerKey, rawEntry) {
       shortDescription: shortDesc,
       description: description,
       tags: Array.from(tags).slice(0, 6),
-      logo: logoUrl || "🌐",
+      logo: logoUrl || "",
       websiteUrl: websiteUrl || "https://apis.guru",
       documentationUrl: swaggerUrl || websiteUrl || "https://apis.guru",
       swaggerUrl: swaggerUrl,

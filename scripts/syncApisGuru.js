@@ -198,7 +198,7 @@ async function main() {
   const isDryRun = args.includes("--dry-run");
 
   console.log("==================================================");
-  console.log("🌐 APIs.guru OpenAPI Synchronizer");
+  console.log("[APIS.GURU] OpenAPI Synchronizer");
   console.log(`Загрузка каталога с ${APIS_GURU_URL}...`);
   console.log(`Лимит импорта: ${limit} API | Режим: ${isDryRun ? "DRY-RUN (без записи)" : "FIRESTORE LIVE"}`);
   console.log("==================================================");
@@ -207,7 +207,7 @@ async function main() {
   if (!res.ok) throw new Error(`HTTP ${res.status} from APIs.guru`);
   const data = await res.json();
   const keys = Object.keys(data);
-  console.log(`✓ Каталог получен. Всего доступно: ${keys.length} API спецификаций.`);
+  console.log(`[OK] Каталог получен. Всего доступно: ${keys.length} API спецификаций.`);
 
   // Top famous tech brands to prioritize
   const priorityBrands = [
@@ -235,7 +235,10 @@ async function main() {
     const cat = mapToCategory(k, title, desc, info["x-apisguru-categories"]);
     const id = k.replace(/[^a-zA-Z0-9]/g, "-").replace(/-+/g, "-").toLowerCase().slice(0, 48);
 
-    const logo = info["x-logo"]?.url || null;
+    let logo = info["x-logo"]?.url || "";
+    if (logo && (logo.includes("_profile_image.svg") || logo.includes("no-logo"))) {
+      logo = "";
+    }
     const swaggerUrl = entry.versions[v].swaggerUrl || entry.versions[v].swaggerYamlUrl || null;
     const websiteUrl = info.contact?.url || (k.includes(".") ? `https://${k.split(":")[0]}` : null);
 
@@ -254,7 +257,7 @@ async function main() {
       shortDescription: shortDesc,
       description: desc,
       tags: Array.from(tags).slice(0, 6),
-      logo: logo || "🌐",
+      logo,
       websiteUrl: websiteUrl || "https://apis.guru",
       documentationUrl: swaggerUrl || websiteUrl || "https://apis.guru",
       swaggerUrl: swaggerUrl,
@@ -335,23 +338,62 @@ async function main() {
 
   let success = 0;
   let errors = 0;
+  const CONCURRENCY = 8;
+  const queue = [...parsedApis];
+  let inFlight = 0;
+  let completed = 0;
 
-  for (let i = 0; i < parsedApis.length; i++) {
-    const api = parsedApis[i];
-    try {
-      await uploadApi(api);
-      success++;
-      console.log(`[${i + 1}/${parsedApis.length}] ✓ Импортирован: ${api.name} (${api.category})`);
-    } catch (err) {
-      errors++;
-      console.error(`[${i + 1}/${parsedApis.length}] ✗ Ошибка ${api.name}:`, err.message);
+  async function worker() {
+    while (queue.length > 0) {
+      const api = queue.shift();
+      try {
+        await uploadApi(api);
+        success++;
+      } catch (err) {
+        errors++;
+      }
+      completed++;
+      if (completed % 25 === 0 || completed === parsedApis.length) {
+        process.stdout.write(`\rПрогресс импорта: [${completed}/${parsedApis.length}] (Успешно: ${success}, Ошибок: ${errors})...`);
+      }
     }
-    await new Promise((r) => setTimeout(r, 60));
   }
 
+  const workers = Array.from({ length: CONCURRENCY }, () => worker());
+  await Promise.all(workers);
+  console.log("");
+
   console.log("\n==================================================");
-  console.log(`🎉 Синхронизация завершена! Успешно: ${success}, Ошибок: ${errors}`);
+  console.log(`[COMPLETE] Sync finished. Success: ${success}, Errors: ${errors}`);
   console.log("==================================================");
+
+  // Synchronize js/demoData.js
+  try {
+    const demoDataPath = "js/demoData.js";
+    let existingApis = [];
+    if (fs.existsSync(demoDataPath)) {
+      const content = fs.readFileSync(demoDataPath, "utf8");
+      const match = content.match(/export const DEMO_APIS = (\[[\s\S]*?\]);/);
+      if (match) {
+        existingApis = JSON.parse(match[1]);
+      }
+    }
+    const apiMap = new Map();
+    for (const a of existingApis) apiMap.set(a.id, a);
+    for (const a of parsedApis) apiMap.set(a.id, a);
+    const merged = Array.from(apiMap.values());
+    const newFileContent = `/**\n * API Library - demoData.js\n * Curated & Synced APIs Collection (${merged.length} APIs)\n */\n\nexport const DEMO_APIS = ${JSON.stringify(merged, null, 2)};\n`;
+    fs.writeFileSync(demoDataPath, newFileContent, "utf8");
+    console.log(`[LOCAL] js/demoData.js успешно обновлен. Суммарно в базе и кэше: ${merged.length} API.`);
+  } catch (err) {
+    console.warn("[LOCAL] Ошибка обновления demoData.js:", err.message);
+  }
+
+  // Clear server cache
+  try {
+    await fetch("http://localhost:3000/api/cache/clear", { method: "POST" });
+    console.log("[SERVER] Кэш сервера успешно сброшен.");
+  } catch (_) {}
 }
 
 main().catch(console.error);

@@ -62,7 +62,7 @@ export async function loadStats() {
         (api) => `
         <li style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border-subtle);">
           <span>${escapeHtml(api.name)}</span>
-          <span class="text-muted">👁 ${api.popularity || 0}</span>
+          <span class="text-muted">${api.popularity || 0} views</span>
         </li>
       `
       )
@@ -98,22 +98,29 @@ export async function loadApisTable() {
         ? `<span class="badge badge-success">Active</span>`
         : `<span class="badge badge-warning">Deprecated</span>`;
 
+      const initials = (api.name || "API").replace(/[^a-zA-Z0-9]/g, "").substring(0, 2).toUpperCase() || "AP";
+      const logoText = api.logo && !api.logo.startsWith("http") && api.logo.length <= 4 ? api.logo : initials;
+
       tr.innerHTML = `
         <td>
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span>${api.logo && !api.logo.startsWith("http") ? api.logo : "⚡"}</span>
+            <span style="font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 2px 6px; border-radius: 2px;">${escapeHtml(logoText)}</span>
             <strong>${escapeHtml(api.name)}</strong>
           </div>
         </td>
         <td><span class="badge badge-primary">${escapeHtml(api.category || "General")}</span></td>
         <td>${escapeHtml(api.authentication || "None")}</td>
         <td>${escapeHtml(api.format || "JSON")}</td>
-        <td>★ ${ratingVal} (${api.ratingCount || 0})</td>
+        <td>${ratingVal} (${api.ratingCount || 0})</td>
         <td>${statusBadge}</td>
         <td>
           <div style="display: flex; gap: 6px;">
-            <button class="btn btn-secondary btn-sm btn-edit-api" data-id="${api.id}" title="Редактировать">✏️</button>
-            <button class="btn btn-secondary btn-sm btn-delete-api" data-id="${api.id}" data-name="${escapeHtml(api.name)}" style="color: var(--danger);" title="Удалить">🗑️</button>
+            <button class="btn btn-secondary btn-sm btn-edit-api" data-id="${api.id}" title="Редактировать" style="padding: 4px 8px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            </button>
+            <button class="btn btn-secondary btn-sm btn-delete-api" data-id="${api.id}" data-name="${escapeHtml(api.name)}" style="color: var(--danger); padding: 4px 8px;" title="Удалить">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
           </div>
         </td>
       `;
@@ -218,14 +225,14 @@ export async function loadReviewsTable() {
       tr.innerHTML = `
         <td><a href="api.html?id=${encodeURIComponent(rev.apiId)}" class="text-accent" target="_blank">${escapeHtml(rev.apiId)}</a></td>
         <td>${escapeHtml(rev.userName || rev.userEmail || "Аноним")}</td>
-        <td>★ ${rev.rating}/5</td>
+        <td>${rev.rating} / 5</td>
         <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHtml(rev.text)}">
           ${escapeHtml(rev.text)}
         </td>
         <td>${dateStr}</td>
         <td>
-          <button class="btn btn-secondary btn-sm btn-delete-review" data-id="${rev.id}" data-api-id="${rev.apiId}" style="color: var(--danger);" title="Удалить отзыв">
-            🗑️
+          <button class="btn btn-secondary btn-sm btn-delete-review" data-id="${rev.id}" data-api-id="${rev.apiId}" style="color: var(--danger); padding: 4px 8px;" title="Удалить отзыв">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
           </button>
         </td>
       `;
@@ -298,7 +305,7 @@ function setupEventListeners() {
         description: document.getElementById("apiFullDesc").value.trim(),
         category: document.getElementById("apiCategory").value,
         tags,
-        logo: document.getElementById("apiLogo").value.trim() || "⚡",
+        logo: document.getElementById("apiLogo").value.trim() || "",
         websiteUrl: document.getElementById("apiWebsite").value.trim(),
         documentationUrl: document.getElementById("apiDocs").value.trim(),
         githubUrl: document.getElementById("apiGithub").value.trim(),
@@ -357,7 +364,7 @@ function setupEventListeners() {
         toast.error("Ошибка импорта: " + err.message);
       } finally {
         btnSeed.disabled = false;
-        btnSeed.textContent = "⚡ Загрузить демо-данные (Seed)";
+        btnSeed.textContent = "Загрузить демо-данные (Seed)";
       }
     });
   }
@@ -390,7 +397,7 @@ function setupEventListeners() {
         toast.error("Ошибка импорта APIs.guru: " + err.message);
       } finally {
         btnSyncGuru.disabled = false;
-        btnSyncGuru.textContent = "🌐 Импорт из APIs.guru";
+        btnSyncGuru.textContent = "Импорт из APIs.guru";
       }
     });
   }

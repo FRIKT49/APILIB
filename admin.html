@@ -35,10 +35,10 @@
 
         <div class="flex gap-2" style="flex-wrap: wrap;">
           <button id="btnSeedDatabase" class="btn btn-secondary">
-            ⚡ Загрузить демо-данные (Seed)
+            Загрузить демо-данные (Seed)
           </button>
           <button id="btnSyncApisGuru" class="btn btn-secondary" style="border-color: rgba(99, 102, 241, 0.4); color: var(--accent-text);">
-            🌐 Импорт из APIs.guru
+            Импорт из APIs.guru
           </button>
           <button id="btnAddApi" class="btn btn-primary">
             + Добавить API
@@ -69,13 +69,13 @@
       <!-- Admin Tabs Navigation -->
       <div class="tabs-nav">
         <button class="tab-btn active" data-tab="tabAdminApis">
-          📦 Каталог API
+          Каталог API
         </button>
         <button class="tab-btn" data-tab="tabAdminUsers">
-          👥 Пользователи
+          Пользователи
         </button>
         <button class="tab-btn" data-tab="tabAdminReviews">
-          🛡️ Модерация отзывов
+          Модерация отзывов
         </button>
       </div>
 
@@ -229,8 +229,8 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="apiLogo">Логотип (Emoji или URL картинки)</label>
-              <input type="text" id="apiLogo" class="form-control" placeholder="⚡ или https://...">
+              <label class="form-label" for="apiLogo">Логотип (Монограмма или URL картинки)</label>
+              <input type="text" id="apiLogo" class="form-control" placeholder="OA или https://...">
             </div>
           </div>
 
@@ -322,7 +322,9 @@
         toast.error("Доступ запрещен: у вас нет роли администратора (role: admin).");
         authCheck.innerHTML = `
           <div class="empty-state">
-            <div class="empty-state-icon">🚫</div>
+            <div class="empty-state-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </div>
             <h3>Доступ ограничен</h3>
             <p>Эта страница предназначена исключительно для администраторов сервиса.</p>
             <p class="text-sm text-muted">Если вы создатель проекта, назначьте роль <code>admin</code> вашему пользователю в Firestore или через консоль.</p>

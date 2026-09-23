@@ -61,7 +61,7 @@
   text-transform: uppercase;
   color: var(--text-secondary);
   padding: 2px 8px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   backdrop-filter: blur(8px);
@@ -107,8 +107,8 @@
   font-weight: 500;
   color: var(--text-secondary);
   transition: all var(--transition-fast);
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
   text-decoration: none;
   display: inline-flex;
   align-items: center;
@@ -322,8 +322,8 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-primary);
-  padding: 9px 22px;
-  border-radius: var(--radius-full);
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
   background: var(--bg-surface);
   text-decoration: none;
@@ -422,7 +422,7 @@
   color: var(--text-secondary);
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   cursor: pointer;
@@ -610,13 +610,13 @@
   display: flex;
   flex-direction: column;
   background: var(--bg-surface);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-md);
   padding: 24px;
-  box-shadow: var(--card-shadow);
-  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+  box-shadow: none;
+  transition: transform var(--transition-fast), border-color var(--transition-fast), background-color var(--transition-fast);
   position: relative;
   overflow: hidden;
 }
@@ -628,13 +628,14 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
 }
 
 .api-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-2px);
+  background: var(--bg-surface-hover);
   border-color: var(--border-glow);
+  box-shadow: var(--card-shadow-hover);
 }
 
 .api-card-header {
@@ -654,23 +655,28 @@
 }
 
 .api-logo {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
-  background: var(--bg-secondary);
+  background: var(--bg-surface-hover);
   border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  transition: transform var(--transition-fast);
+  box-shadow: none;
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 
 .api-card:hover .api-logo {
-  transform: scale(1.08);
+  transform: scale(1.04);
+  border-color: var(--border-glow);
 }
 
 .api-title-group {
@@ -803,14 +809,14 @@
 }
 
 .category-chip {
-  padding: 7px 16px;
-  border-radius: var(--radius-full);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
   background: var(--bg-surface);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  font-size: 0.835rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -831,7 +837,7 @@
   background: #ffffff;
   border-color: #ffffff;
   color: #07090e;
-  box-shadow: 0 4px 18px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   font-weight: 700;
 }
 
@@ -839,8 +845,33 @@
   background: #0f172a;
   color: #ffffff;
   border-color: #0f172a;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   font-weight: 700;
+}
+
+.chip-count {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  margin-left: 2px;
+  opacity: 0.85;
+}
+
+.category-chip.active .chip-count {
+  background: rgba(0, 0, 0, 0.12);
+  color: inherit;
+}
+
+[data-theme="light"] .chip-count {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .category-chip.active .chip-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
 }
 
 /* Skeleton Loading Animation */
@@ -896,18 +927,16 @@
 .empty-state {
   text-align: center;
   padding: 64px 24px;
-  background: var(--bg-surface);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: transparent;
   border: 1px dashed var(--border-color);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-md);
   margin: 24px 0;
 }
 
 .empty-state-icon {
-  font-size: 3.5rem;
+  font-size: 3rem;
   margin-bottom: 18px;
-  filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.3));
+  color: var(--text-muted);
 }
 
 .empty-state-title {
@@ -937,11 +966,11 @@
   pointer-events: auto;
   min-width: 320px;
   max-width: 440px;
-  padding: 16px 20px;
-  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
   background: var(--bg-surface-elevated);
   border: 1px solid var(--border-color);
-  box-shadow: var(--shadow-xl), 0 0 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   gap: 14px;
@@ -1022,8 +1051,8 @@
 .modal-dialog {
   background-color: var(--bg-surface-elevated);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl), 0 0 50px rgba(0, 0, 0, 0.8);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
   width: 100%;
   max-width: 620px;
   max-height: 90vh;
@@ -1100,7 +1129,10 @@
 }
 
 .star-rating-input label {
-  color: rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: color var(--transition-fast), transform var(--transition-fast);
   cursor: pointer;
 }

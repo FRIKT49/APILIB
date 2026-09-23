@@ -30,7 +30,12 @@
       <!-- Command Palette Search Bar -->
       <div class="search-bar-wrapper" style="max-width: 680px; margin: 0 auto 24px;">
         <div class="search-bar">
-          <span class="search-bar-icon">🔍</span>
+          <span class="search-bar-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
           <input 
             type="text" 
             id="mainSearchInput" 
@@ -93,8 +98,8 @@
             <label for="sourceFilter">Источник:</label>
             <select id="sourceFilter" class="filter-select">
               <option value="All">Все источники</option>
-              <option value="apis.guru">🌐 APIs.guru (OpenAPI)</option>
-              <option value="verified">⚡ Проверенные API</option>
+              <option value="apis.guru">APIs.guru (OpenAPI)</option>
+              <option value="verified">Verified API</option>
             </select>
           </div>
 
@@ -102,9 +107,9 @@
           <div class="filter-select-wrapper">
             <label for="sortFilter">Сортировка:</label>
             <select id="sortFilter" class="filter-select">
-              <option value="rating">По рейтингу ★</option>
-              <option value="popularity">По популярности 👁</option>
-              <option value="createdAt">По дате добавления 🕒</option>
+              <option value="rating">По рейтингу</option>
+              <option value="popularity">По популярности</option>
+              <option value="createdAt">По дате добавления</option>
               <option value="name">По названию (А-Я)</option>
             </select>
           </div>
@@ -157,21 +162,36 @@
     const categoriesContainer = document.getElementById("categories");
 
     let activeUser = null;
-    let currentLastDoc = null;
-    let unsubscribeRealtime = null;
-    let isSearchMode = false;
     let displayedApis = [];
+    let currentPage = 1;
+    let totalApisCount = 0;
+    let categoryCounts = {};
 
     onAuthChange((user) => {
       activeUser = user;
     });
 
+    async function loadCategoryCounts() {
+      try {
+        const res = await fetch("/api/categories");
+        if (res.ok) {
+          const data = await res.json();
+          categoryCounts = data.counts || {};
+          renderCategoryChips(filterManager.getState().category);
+        }
+      } catch (_) {}
+    }
+
     function renderCategoryChips(activeCat) {
-      categoriesContainer.innerHTML = CATEGORIES.map((cat) => `
-        <button class="category-chip ${cat === activeCat ? "active" : ""}" data-category="${cat}">
-          ${cat === "All" ? "Все категории" : cat}
-        </button>
-      `).join("");
+      categoriesContainer.innerHTML = CATEGORIES.map((cat) => {
+        const count = categoryCounts[cat] !== undefined ? ` <span class="chip-count">${categoryCounts[cat]}</span>` : "";
+        const label = cat === "All" ? "Все категории" : cat;
+        return `
+          <button class="category-chip ${cat === activeCat ? "active" : ""}" data-category="${cat}">
+            ${label}${count}
+          </button>
+        `;
+      }).join("");
 
       categoriesContainer.querySelectorAll(".category-chip").forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -202,7 +222,7 @@
           try {
             const isFav = await toggleFavorite(apiId);
             btn.classList.toggle("active", isFav);
-            btn.textContent = isFav ? "★" : "☆";
+            btn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
             btn.title = isFav ? "Удалить из избранного" : "Добавить в избранное";
             toast.success(isFav ? "Добавлено в избранное" : "Удалено из избранного");
           } catch (err) {
@@ -212,7 +232,7 @@
       });
     }
 
-    function renderApis(apis, append = false) {
+    function renderApis(apis, append = false, total = 0) {
       if (!append) {
         apiGrid.innerHTML = "";
         displayedApis = apis;
@@ -223,7 +243,12 @@
       if (displayedApis.length === 0) {
         apiGrid.innerHTML = `
           <div class="empty-state" style="grid-column: 1 / -1;">
-            <div class="empty-state-icon">🔍</div>
+            <div class="empty-state-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
             <h3 class="empty-state-title">Ничего не найдено</h3>
             <p class="empty-state-text">Попробуйте изменить поисковый запрос или сбросить фильтры каталога.</p>
             <button class="btn btn-secondary btn-sm" id="btnResetFilters">Сбросить все фильтры</button>
@@ -242,7 +267,7 @@
         return;
       }
 
-      catalogCount.textContent = `Отображается: ${displayedApis.length} API`;
+      catalogCount.textContent = `Отображается: ${displayedApis.length} из ${total || displayedApis.length} API`;
 
       apis.forEach((api) => {
         const card = createApiCardElement(api, false);
@@ -252,100 +277,61 @@
       attachCardEvents(apiGrid);
     }
 
-    function applyQuery() {
-      const state = filterManager.getState();
-
-      if (state.searchQuery && state.searchQuery.trim().length >= 2) {
-        isSearchMode = true;
-        btnLoadMore.style.display = "none";
-        if (unsubscribeRealtime) unsubscribeRealtime();
-        showSkeletons(4);
-
-        searchApis(state.searchQuery).then((results) => {
-          let filtered = results;
-          if (state.category !== "All") filtered = filtered.filter(a => a.category === state.category);
-          if (state.source === "apis.guru") filtered = filtered.filter(a => a.source === "apis.guru" || a.swaggerUrl);
-          if (state.source === "verified") filtered = filtered.filter(a => a.source !== "apis.guru" && !a.swaggerUrl);
-          if (state.authentication !== "All") filtered = filtered.filter(a => a.authentication === state.authentication);
-          if (state.format !== "All") filtered = filtered.filter(a => a.format === state.format);
-          if (state.pricing === "Free") filtered = filtered.filter(a => a.freeTier === true);
-          if (state.pricing === "Paid") filtered = filtered.filter(a => a.freeTier === false);
-          renderApis(filtered);
-        });
-        return;
+    async function fetchCatalogPage(pageNum = 1, append = false) {
+      if (!append) {
+        showSkeletons(6);
       }
 
-      isSearchMode = false;
-      showSkeletons(6);
-
-      if (unsubscribeRealtime) unsubscribeRealtime();
-
-      unsubscribeRealtime = subscribeToApis(
-        {
-          category: state.category,
-          source: state.source,
-          authentication: state.authentication,
-          pricing: state.pricing,
-          format: state.format,
-          sortBy: state.sortBy,
-          sortOrder: state.sortBy === "name" ? "asc" : "desc",
-          pageSize: 16
-        },
-        (apis, lastDoc, error) => {
-          if (error) {
-            console.warn("Realtime subscription notice:", error.message);
-            catalogCount.textContent = "Готов к работе с базой данных";
-            renderApis([]);
-            return;
-          }
-
-          currentLastDoc = lastDoc;
-          renderApis(apis);
-
-          if (apis.length >= 12 && currentLastDoc) {
-            btnLoadMore.style.display = "inline-flex";
-          } else {
-            btnLoadMore.style.display = "none";
-          }
-        }
-      );
-    }
-
-    btnLoadMore.addEventListener("click", async () => {
-      if (!currentLastDoc || isSearchMode) return;
-
-      btnLoadMore.disabled = true;
-      btnLoadMore.textContent = "Загрузка...";
-
       const state = filterManager.getState();
+      const params = new URLSearchParams();
+      params.set("page", pageNum);
+      params.set("limit", 18);
+      if (state.category && state.category !== "All") params.set("category", state.category);
+      if (state.source && state.source !== "All") params.set("source", state.source);
+      if (state.authentication && state.authentication !== "All") params.set("auth", state.authentication);
+      if (state.pricing && state.pricing !== "All") params.set("pricing", state.pricing);
+      if (state.format && state.format !== "All") params.set("format", state.format);
+      if (state.sortBy) params.set("sortBy", state.sortBy);
+      if (state.searchQuery && state.searchQuery.trim().length >= 2) params.set("q", state.searchQuery.trim());
+
       try {
-        const { apis, lastDoc } = await fetchNextPageApis(
-          {
-            category: state.category,
-            source: state.source,
-            authentication: state.authentication,
-            pricing: state.pricing,
-            format: state.format,
-            sortBy: state.sortBy,
-            sortOrder: state.sortBy === "name" ? "asc" : "desc",
-            pageSize: 16
-          },
-          currentLastDoc
-        );
+        const res = await fetch(`/api/apis?${params.toString()}`);
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        const data = await res.json();
 
-        currentLastDoc = lastDoc;
-        renderApis(apis, true);
+        totalApisCount = data.total || 0;
+        currentPage = data.page || pageNum;
 
-        if (!lastDoc || apis.length < 16) {
+        renderApis(data.apis || [], append, totalApisCount);
+
+        if (data.hasMore) {
+          btnLoadMore.style.display = "inline-flex";
+          btnLoadMore.textContent = "Показать ещё";
+        } else {
           btnLoadMore.style.display = "none";
         }
       } catch (err) {
-        toast.error("Ошибка при подгрузке данных: " + err.message);
+        console.error("Error loading catalog:", err);
+        catalogCount.textContent = "Ошибка загрузки каталога";
+      }
+    }
+
+    function applyQuery() {
+      currentPage = 1;
+      fetchCatalogPage(1, false);
+    }
+
+    btnLoadMore.addEventListener("click", async () => {
+      btnLoadMore.disabled = true;
+      btnLoadMore.textContent = "Загрузка...";
+      try {
+        await fetchCatalogPage(currentPage + 1, true);
       } finally {
         btnLoadMore.disabled = false;
-        btnLoadMore.textContent = "Показать ещё";
       }
     });
+
+    loadCategoryCounts();
 
     const filterManager = new FilterManager(() => {
       applyQuery();
